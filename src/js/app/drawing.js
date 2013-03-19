@@ -1,5 +1,8 @@
-define(function () {
+define(['./colors', './geometry'], function (colors, geometry) {
     'use strict';
+
+    var hexToRgba = colors.hexToRgba;
+    var Point = geometry.Point;
 
     /** @define {boolean} */
     var EXCANVAS_COMPATIBLE = true;
@@ -39,28 +42,6 @@ define(function () {
     };
 
     /**
-     * @private
-     * @param {!string} hexColor
-     * @param {!number} alpha
-     * @returns {!string}
-     */
-    function hexToRgba_(hexColor, alpha) {
-        var color = parseInt(hexColor.substr(1, 6), 16);
-        var r = (color >> 16) & 0xFF;
-        var g = (color >> 8) & 0xFF;
-        var b = color & 0xFF;
-        /*
-         var r = parseInt(hexColor.substr(1, 2), 16);
-         var g = parseInt(hexColor.substr(3, 2), 16);
-         var b = parseInt(hexColor.substr(5, 2), 16);
-         */
-        if (alpha < 1) {
-            return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
-        }
-        return 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
-
-    /**
      * draws a single shape
      * @param {!string} shape
      * @param {!Array.<number>} coords_arr
@@ -71,6 +52,9 @@ define(function () {
      * @param {!number} fillalpha float [0, 1] 0 is transparent, 1 is opaque
      */
     CanvasDrawing.prototype.drawShape = function (shape, coords_arr, strokewidth, stroke, strokealpha, fill, fillalpha) {
+        if (!(fillalpha > 0  || (strokealpha > 0 && strokewidth > 0))) {
+            return;
+        }
         this.ctx_.beginPath();
         switch (shape) {
         case 'poly':
@@ -97,23 +81,30 @@ define(function () {
             break;
         case 'arc':
             //center
+            var startPoint = Point
+                    .polar(coords_arr[2], coords_arr[3])
+                    .translate(coords_arr[0], coords_arr[1]);
             this.ctx_.moveTo(coords_arr[0], coords_arr[1]);
-            this.ctx_.lineTo(coords_arr[0] + Math.cos(coords_arr[3]) * coords_arr[2], coords_arr[1] + Math.sin(coords_arr[3]) * coords_arr[2]);
+            this.ctx_.lineTo(startPoint.getX(), startPoint.getY());
             this.ctx_.arc(coords_arr[0], coords_arr[1], coords_arr[2], coords_arr[3], coords_arr[4], false);
             this.ctx_.lineTo(coords_arr[0], coords_arr[1]);
             break;
         }
         this.ctx_.closePath();
-        this.ctx_.fillStyle = hexToRgba_(fill, fillalpha);
-        this.ctx_.fill();
-        this.ctx_.strokeStyle = hexToRgba_(stroke, strokealpha);
-        this.ctx_.lineWidth = strokewidth;
-        this.ctx_.stroke();
+        if (fillalpha > 0) {
+            this.ctx_.fillStyle = hexToRgba(fill, fillalpha);
+            this.ctx_.fill();
+        }
+        if (strokealpha > 0 && strokewidth > 0) {
+            this.ctx_.strokeStyle = hexToRgba(stroke, strokealpha);
+            this.ctx_.lineWidth = strokewidth;
+            this.ctx_.stroke();
+        }
     };
 
-    CanvasDrawing.prototype.fillText = function (textToDraw, x, y, fill, fillalpha) {
-        //TODO ctx_.font = '20px Arial'
-        this.ctx_.fillStyle = hexToRgba_(fill, fillalpha);
+    CanvasDrawing.prototype.fillText = function (textToDraw, x, y, fill, fillalpha, font) {
+        this.ctx_.font = font;
+        this.ctx_.fillStyle = hexToRgba(fill, fillalpha);
         this.ctx_.fillText(textToDraw, x, y);
     };
 

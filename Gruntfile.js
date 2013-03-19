@@ -137,7 +137,7 @@ module.exports = function (grunt) {
     grunt.registerTask('test', ['connect:server', 'qunit:all']);
     grunt.registerTask('testCov', ['test', 'qunit-cov']);
     grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
-    grunt.registerTask('publish', ['default', 'requirejs:compile', 'simpleHashres', 'replaceDataMainBySrc']);
+    grunt.registerTask('publish', ['default', 'requirejs:compile']);
     grunt.registerTask('publishAlmond', ['default', 'requirejs:compile', 'requirejs:compileAlmond', 'simpleHashres', 'replaceDataMainBySrc']);
     grunt.registerTask('dev', ['connect:server', 'reload', 'watch:dev']);
     
