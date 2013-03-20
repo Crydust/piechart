@@ -1,7 +1,0 @@
-TODO
-====
-
-index.html needs tags to know what to replace
-after concat and uglify a replacement is needed in index.html
-we need to copy the other files (don't forget vendor dir)
-OK tests are broken because we stopped using requirejs

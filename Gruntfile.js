@@ -25,7 +25,7 @@ module.exports = function (grunt) {
             },
             src: {
                 files: {
-                    src: ['Gruntfile.js', 'src/js/*.js', 'src/js/app/**/*.js']
+                    src: ['Gruntfile.js', 'src/js/**/*.js', '!src/js/vendor/**/*.js']
                 }
             },
             test: {
@@ -55,7 +55,7 @@ module.exports = function (grunt) {
         jssemicoloned: {
             files: [
                 'Gruntfile.js',
-                'src/js/*.js', 'src/js/app/*.js',
+                'src/js/**/*.js', '!src/js/vendor/**/*.js',
                 'test/js/**/*.js'
             ]
         },
@@ -87,18 +87,25 @@ module.exports = function (grunt) {
                 lint: true,
                 report: 'min'
             },
-            publish: {
+            piechart: {
                 options: {
                     wrap: 'piechart'
                 },
                 files: {
                     'publish/js/piechart.js': [
-                        'src/js/app/colors.js',
-                        'src/js/app/geometry.js',
-                        'src/js/app/drawing.js',
-                        'src/js/app/piechart.js',
-                        'src/js/app/export_draw.js'
-                    ],
+                        'src/js/colors.js',
+                        'src/js/geometry.js',
+                        'src/js/drawing.js',
+                        'src/js/piechart.js',
+                        'src/js/export_draw.js'
+                    ]
+                }
+            },
+            excanvas: {
+                options: {
+                    compress: false
+                },
+                files: {
                     'publish/js/vendor/excanvas.js': [
                         'src/js/vendor/excanvas.js'
                     ]
@@ -138,8 +145,10 @@ module.exports = function (grunt) {
         };
         
         var replacement = grunt.file.read('publish/index.html');
-        var jsFileName = renameFile('publish/js', 'piechart.js', '${hash}.piechart.cache.js');
-        replacement = replacement.replace('="js/piechart.js"', '="js/' + jsFileName + '"');
+        var piechartFileName = renameFile('publish/js', 'piechart.js', '${hash}.piechart.cache.js');
+        replacement = replacement.replace('="js/piechart.js"', '="js/' + piechartFileName + '"');
+        var excanvasFileName = renameFile('publish/js/vendor', 'excanvas.js', '${hash}.excanvas.cache.js');
+        replacement = replacement.replace('="js/vendor/excanvas.js"', '="js/vendor/' + excanvasFileName + '"');
         grunt.file.write('publish/index.html', replacement);
     });
     
