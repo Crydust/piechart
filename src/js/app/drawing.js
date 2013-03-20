@@ -1,5 +1,5 @@
-define(['./colors', './geometry'], function (colors, geometry) {
-    'use strict';
+/*global colors: false, geometry: false */
+var drawing = (function (colors, geometry) {
 
     var hexToRgba = colors.hexToRgba;
     var Point = geometry.Point;
@@ -120,4 +120,4 @@ define(['./colors', './geometry'], function (colors, geometry) {
     return {
         CanvasDrawing: CanvasDrawing
     };
-});
+}(colors, geometry));

@@ -20,10 +20,10 @@ module.exports = function (grunt) {
             }
         },
         jshint: {
+            options: {
+                jshintrc: '.jshintrc'
+            },
             src: {
-                options: {
-                    jshintrc: '.jshintrc'
-                },
                 files: {
                     src: ['Gruntfile.js', 'src/js/*.js', 'src/js/app/**/*.js']
                 }
@@ -31,34 +31,6 @@ module.exports = function (grunt) {
             test: {
                 files: {
                     src: ['test/js/**/*.js']
-                }
-            }
-        },
-        requirejs: {
-            compile: {
-                options: {
-                    mainConfigFile: 'src/js/main.js',
-                    appDir: 'src',
-                    dir: 'publish',
-                    name: '../main',
-                    pragmas: {
-                        prod: true
-                    },
-                    optimize: 'uglify2',
-                    optimizeCss: 'standard'
-                }
-            },
-            compileAlmond: {
-                options: {
-                    mainConfigFile: 'src/js/main.js',
-                    baseUrl: 'src/js/vendor',
-                    out: 'publish/js/main.js',
-                    name: 'almond',
-                    include: '../main',
-                    pragmas: {
-                        prod: true
-                    },
-                    optimize: 'uglify2'
                 }
             }
         },
@@ -80,32 +52,73 @@ module.exports = function (grunt) {
                 port: 8888
             }
         },
-        'qunit-cov': {
-            test: {
-                minimum: 0.01,
-                srcDir: 'src',
-                depDirs: ['test'],
-                outDir: 'testResults',
-                testFiles: ['test/index.html']
-            }
-        },
         jssemicoloned: {
             files: [
                 'Gruntfile.js',
                 'src/js/*.js', 'src/js/app/*.js',
                 'test/js/**/*.js'
             ]
+        },
+        clean: [
+            'publish',
+            'testResults'
+        ],
+        copy: {
+            publish: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'src/',
+                        src: [
+                            '**',
+                            '!**/app/*.js'
+                        ],
+                        dest: 'publish/',
+                        filter: 'isFile'
+                    }
+                ]
+            }
+        },
+        uglify: {
+            options: {
+                mangle: true,
+                compress: true,
+                beautify: false,
+                lint: true,
+                report: 'min',
+                wrap: 'piechart'
+            },
+            publish: {
+                files: {
+                    'publish/js/main.js': [
+                        'src/js/app/colors.js',
+                        'src/js/app/geometry.js',
+                        'src/js/app/drawing.js',
+                        'src/js/app/piechart.js',
+                        'src/js/app/export_draw.js'
+                    ]
+                }
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-reload');
-    grunt.loadNpmTasks('grunt-qunit-cov');
     grunt.loadNpmTasks('grunt-jssemicoloned');
+
+    grunt.registerTask('replaceScriptTags', function () {
+        var replacement = grunt.file.read('publish/index.html');
+        replacement = replacement.replace(
+                /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
+                '<script src="js/main.js"></script>');
+        grunt.file.write('publish/index.html', replacement);
+    });
 
     grunt.registerTask('simpleHashres', function () {
         var renameFile = function (dir, from, to) {
@@ -126,19 +139,10 @@ module.exports = function (grunt) {
         replacement = replacement.replace('="css/style.css"', '="css/' + cssFileName + '"');
         grunt.file.write('publish/index.html', replacement);
     });
-    grunt.registerTask('replaceDataMainBySrc', function () {
-        var original = grunt.file.read('publish/index.html');
-        var replacement = original.replace(
-            /<script data-main="([^"]+)" src="[^"]+"><\/script>/,
-            '<script src="$1"></script>');
-        grunt.file.write('publish/index.html', replacement);
-    });
     
-    grunt.registerTask('test', ['connect:server', 'qunit:all']);
-    grunt.registerTask('testCov', ['test', 'qunit-cov']);
+    grunt.registerTask('test', ['connect:server', 'qunit']);
     grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
-    grunt.registerTask('publish', ['default', 'requirejs:compile']);
-    grunt.registerTask('publishAlmond', ['default', 'requirejs:compile', 'requirejs:compileAlmond', 'simpleHashres', 'replaceDataMainBySrc']);
-    grunt.registerTask('dev', ['connect:server', 'reload', 'watch:dev']);
+    grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres']);
+    grunt.registerTask('dev', ['jshint', 'connect:server', 'reload', 'watch']);
     
 };

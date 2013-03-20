@@ -1,5 +1,4 @@
-define(function () {
-    'use strict';
+var colors = (function () {
 
     /**
      * @private
@@ -26,4 +25,4 @@ define(function () {
     return {
         hexToRgba: hexToRgba
     };
-});
+}());

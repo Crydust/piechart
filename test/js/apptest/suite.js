@@ -1,3 +1,0 @@
-define(['./dummytest'], function() {
-    return {};
-});

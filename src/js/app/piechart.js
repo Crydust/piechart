@@ -1,5 +1,5 @@
-define(['./drawing', './colors', './geometry'], function (drawing, colors, geometry) {
-    'use strict';
+/*global colors: false, geometry: false, drawing: false */
+var piechart = (function (drawing, colors, geometry) {
     
     var Point = geometry.Point;
     var toRad = geometry.toRad;
@@ -13,17 +13,20 @@ define(['./drawing', './colors', './geometry'], function (drawing, colors, geome
                 '#f0cbae', '#958f91', '#bfa9ac', '#f8e9be',
                 '#c8c8c8'
             ];
-        var center = new Point(200, 200);
-        var circleRadius = 150;
+        var center = new Point(width / 2, height  / 2);
+        var outerRadius = Math.min(width, height) / 2;
         
         var total = 0;
         for (var i = 0, leni = values.length; i < leni; i++) {
+            if (typeof values[i] === 'string') {
+                values[i] = parseInt(values[i], 10);
+            }
             total += values[i];
         }
         var wedges = [];
         var start = 0;
         for (var j = 0, lenj = values.length; j < lenj; j++) {
-            var wedge = new Wedge(start, values[j] / total, labels[j], center, circleRadius, themeColors[3], themeColors[j + 4], themeColors[2]);
+            var wedge = new Wedge(start, values[j] / total, labels[j], center, outerRadius, themeColors[3], themeColors[j + 4], themeColors[2]);
             start = wedge.getEnd();
             wedges.push(wedge);
         }
@@ -39,12 +42,12 @@ define(['./drawing', './colors', './geometry'], function (drawing, colors, geome
         d.renderGraphics(document.getElementById('root'));
     }
     
-    function Wedge(start, value, label, center, radius, stroke, fill, textFill) {
+    function Wedge(start, value, label, center, outerRadius, stroke, fill, textFill) {
         this.start_ = start;
         this.value_ = value;
         this.label_ = label;
         this.center_ = center;
-        this.radius_ = radius;
+        this.radius_ = (outerRadius - 32) / 1.1;
         this.stroke_ = stroke;
         this.fill_ = fill;
         this.textFill_ = textFill;
@@ -72,10 +75,19 @@ define(['./drawing', './colors', './geometry'], function (drawing, colors, geome
                 .translate(this.center_);
     };
     Wedge.prototype.getTextPosition = function () {
-        return Point
-                .polar((this.radius_ * 1.1) + 16, this.getMiddleAlpha())
+        var alpha = this.getMiddleAlpha();
+        var p = Point
+                .polar((this.radius_ * 1.1) + 16, alpha)
                 .translate(this.center_)
-                .translate(-6 * (this.label_.length), 8);
+                .translate(-6 * this.label_.length, 6);
+        if (this.label_.length > 2) {
+            if (alpha < 0.2 * Math.PI || alpha > 1.8 * Math.PI) {
+                p = p.translate(6 * (this.label_.length - 2), 0);
+            } else if (alpha > 0.8 * Math.PI && alpha < 1.2 * Math.PI) {
+                p = p.translate(-6 * (this.label_.length - 2), 0);
+            }
+        }
+        return p;
     };
     Wedge.prototype.draw = function (d) {
         var strokewidth, stroke, strokealpha, fill, fillalpha;
@@ -118,4 +130,5 @@ define(['./drawing', './colors', './geometry'], function (drawing, colors, geome
     return {
         draw: draw
     };
-});
+
+}(drawing, colors, geometry));
