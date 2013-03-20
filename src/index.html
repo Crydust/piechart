@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>piechart</title>
-    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="root"></div>
@@ -17,16 +16,10 @@
     <!-- END REPLACE -->
     <script>
         window.onload = function () {
-            /*
-            piechart(
-                    'root', 500, 300,
-                    [20, 20, 20, 20, 20, 20, 20, 20, 20],
-                    'KN,LC,AA,BB,CC,DD,EE,FF,GG'.split(','));
-            */
             piechart.draw(
                     'root', 500, 300,
-                    '1,1,1,1,1,1,1,1,1'.split(','),
-                    'MMMM,MMM,MMM,MMM,MMMM,MMMM,MMM,MMM,MMM'.split(','));
+                    '2,3,5,7,11,13,17,19'.split(','),
+                    'KN,AA,BB,CC,DD,EE,FF,GG'.split(','));
         };
     </script>
     

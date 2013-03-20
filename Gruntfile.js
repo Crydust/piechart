@@ -71,7 +71,7 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             '**',
-                            '!**/app/*.js'
+                            '!**/*.js'
                         ],
                         dest: 'publish/',
                         filter: 'isFile'
@@ -85,17 +85,22 @@ module.exports = function (grunt) {
                 compress: true,
                 beautify: false,
                 lint: true,
-                report: 'min',
-                wrap: 'piechart'
+                report: 'min'
             },
             publish: {
+                options: {
+                    wrap: 'piechart'
+                },
                 files: {
-                    'publish/js/main.js': [
+                    'publish/js/piechart.js': [
                         'src/js/app/colors.js',
                         'src/js/app/geometry.js',
                         'src/js/app/drawing.js',
                         'src/js/app/piechart.js',
                         'src/js/app/export_draw.js'
+                    ],
+                    'publish/js/vendor/excanvas.js': [
+                        'src/js/vendor/excanvas.js'
                     ]
                 }
             }
@@ -116,7 +121,7 @@ module.exports = function (grunt) {
         var replacement = grunt.file.read('publish/index.html');
         replacement = replacement.replace(
                 /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-                '<script src="js/main.js"></script>');
+                '<script src="js/piechart.js"></script>');
         grunt.file.write('publish/index.html', replacement);
     });
 
@@ -133,10 +138,8 @@ module.exports = function (grunt) {
         };
         
         var replacement = grunt.file.read('publish/index.html');
-        var jsFileName = renameFile('publish/js', 'main.js', '${hash}.main.cache.js');
-        replacement = replacement.replace('="js/main.js"', '="js/' + jsFileName + '"');
-        var cssFileName = renameFile('publish/css', 'style.css', '${hash}.style.cache.css');
-        replacement = replacement.replace('="css/style.css"', '="css/' + cssFileName + '"');
+        var jsFileName = renameFile('publish/js', 'piechart.js', '${hash}.piechart.cache.js');
+        replacement = replacement.replace('="js/piechart.js"', '="js/' + jsFileName + '"');
         grunt.file.write('publish/index.html', replacement);
     });
     

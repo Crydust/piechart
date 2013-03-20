@@ -123,7 +123,7 @@ var piechart = (function (drawing, colors, geometry) {
         strokealpha = 0;
         fill = this.textFill_;
         fillalpha = 1;
-        var p3  = this.getTextPosition();
+        var p3 = this.getTextPosition();
         d.fillText(this.label_, p3.getX(), p3.getY(), fill, fillalpha, '16px sans-serif');
     };
     
