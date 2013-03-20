@@ -61,7 +61,7 @@ module.exports = function (grunt) {
         },
         clean: [
             'publish',
-            'testResults'
+            'piechart.zip'
         ],
         copy: {
             publish: {
@@ -111,6 +111,17 @@ module.exports = function (grunt) {
                     ]
                 }
             }
+        },
+        compress: {
+            options: {
+                archive: 'piechart.zip'
+            },
+            files: {
+                expand: true,
+                cwd: 'publish/',
+                src: ['**'],
+                dest: './'
+            }
         }
     });
 
@@ -123,6 +134,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-reload');
     grunt.loadNpmTasks('grunt-jssemicoloned');
+    grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('replaceScriptTags', function () {
         var replacement = grunt.file.read('publish/index.html');
@@ -154,7 +166,7 @@ module.exports = function (grunt) {
     
     grunt.registerTask('test', ['connect:server', 'qunit']);
     grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
-    grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres']);
+    grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres', 'compress']);
     grunt.registerTask('dev', ['jshint', 'connect:server', 'reload', 'watch']);
     
 };
