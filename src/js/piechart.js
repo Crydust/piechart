@@ -23,6 +23,9 @@ var piechart = (function (drawing, colors, geometry) {
             }
             total += values[i];
         }
+        if (total < 0.001) {
+            return;
+        }
         var wedges = [];
         var start = 0;
         for (var j = 0, lenj = values.length; j < lenj; j++) {
