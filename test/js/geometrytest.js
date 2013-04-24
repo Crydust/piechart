@@ -48,6 +48,74 @@ QUnit.test('polar', 12, function (assert) {
     assert.close(p4.getY(), 2, 0.001);
 });
 
+
+QUnit.module('geometry.Rect');
+
+QUnit.test('constructorWithNumbers', function (assert) {
+    var r = new geometry.Rect(3, 5, 7, 11);
+    assert.ok(r instanceof geometry.Rect);
+    assert.equal(r.getTop(), 3);
+    assert.equal(r.getLeft(), 5);
+    assert.equal(r.getWidth(), 7);
+    assert.equal(r.getHeight(), 11);
+    assert.equal(r.getRight(), 12);
+    assert.equal(r.getBottom(), 14);
+    assert.equal(r.toString(), 'Rect { top: 3.0, left: 5.0, width: 7.0, height: 11.0}');
+});
+
+QUnit.test('constructorWithPoints', function (assert) {
+    var r = new geometry.Rect(new geometry.Point(5, 3), new geometry.Point(12, 14));
+    assert.ok(r instanceof geometry.Rect);
+    assert.equal(r.getTop(), 3);
+    assert.equal(r.getLeft(), 5);
+    assert.equal(r.getWidth(), 7);
+    assert.equal(r.getHeight(), 11);
+    assert.equal(r.getRight(), 12);
+    assert.equal(r.getBottom(), 14);
+    assert.equal(r.toString(), 'Rect { top: 3.0, left: 5.0, width: 7.0, height: 11.0}');
+});
+
+QUnit.test('constructorWithNumbers', function (assert) {
+    var r = new geometry.Rect(3, 5, 7, 11);
+    assert.ok(r instanceof geometry.Rect);
+    assert.equal(r.getTop(), 3);
+    assert.equal(r.getLeft(), 5);
+    assert.equal(r.getWidth(), 7);
+    assert.equal(r.getHeight(), 11);
+    assert.equal(r.getRight(), 12);
+    assert.equal(r.getBottom(), 14);
+    assert.equal(r.toString(), 'Rect { top: 3.0, left: 5.0, width: 7.0, height: 11.0}');
+});
+
+QUnit.test('subRect', function (assert) {
+    var r = new geometry.Rect(3, 5, 7, 11);
+    assert.ok(r instanceof geometry.Rect);
+    var s = r.subRect(0.909, 0.857, 0.091, 0.143);
+    var d = 0.005;
+    assert.close(s.getTop(), 4, d, 'top');
+    assert.close(s.getLeft(), 6, d, 'left');
+    assert.close(s.getWidth(), 5, d, 'width');
+    assert.close(s.getHeight(), 9, d, 'height');
+    assert.close(s.getRight(), 11, d, 'right');
+    assert.close(s.getBottom(), 13, d, 'bottom');
+    assert.equal(s.toString(), 'Rect { top: 4.0, left: 6.0, width: 5.0, height: 9.0}');
+});
+
+QUnit.test('subRect2', function (assert) {
+    var r = new geometry.Rect(0, 0, 460, 320);
+    assert.ok(r instanceof geometry.Rect);
+    var s = r.subRect(0.95, 0.7, 0.2, 0.1);
+    var d = 0.005;
+    assert.close(s.getTop(), 16, d, 'top');
+    assert.close(s.getLeft(), 46, d, 'left');
+    assert.close(s.getWidth(), 276, d, 'width');
+    assert.close(s.getHeight(), 240, d, 'height');
+    assert.close(s.getRight(), 322, d, 'right');
+    assert.close(s.getBottom(), 256, d, 'bottom');
+    assert.equal(s.toString(), 'Rect { top: 16.0, left: 46.0, width: 276.0, height: 240.0}');
+});
+
+
 QUnit.test('toDeg', 7, function (assert) {
     assert.strictEqual(geometry.toDeg(0), 0, '0 is 0 deg');
     assert.strictEqual(geometry.toDeg(Math.PI / 2), 90, 'pi/2 is 90 deg');

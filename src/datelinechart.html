@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>datelinechart</title>
+</head>
+<body>
+    <div>[ <a href="index.html">index</a> | <a href="piechart.html">piechart</a> | datelinechart ]</div>
+    <div id="root" style="float:left;"></div>
+    <!--[if lt IE 9]><script src="js/vendor/excanvas.js"></script><![endif]-->
+    <!-- BEGIN REPLACE -->
+    <script src="js/colors.js"></script>
+    <script src="js/geometry.js"></script>
+    <script src="js/drawing.js"></script>
+    <script src="js/objects.js"></script>
+    <script src="js/axis.js"></script>
+    <script src="js/dataset.js"></script>
+    <script src="js/datelinechart.js"></script>
+    <!-- END REPLACE -->
+    <script>
+        window.onload = function () {
+            datelinechart.draw(
+                    'root', 460, 320, [
+                        {
+                            'Name': 'Allocated',
+                            'DateValues': '31/1/12,4/3/13',
+                            'YValues': '11.0,11.0'
+                        },
+                        {
+                            'Name': 'Allocated done',
+                            'DateValues': '24/10/12,4/3/13',
+                            'YValues': '0.5,0.5'
+                        },
+                        {
+                            'Name': 'Done',
+                            'DateValues': '24/10/12,4/3/13',
+                            'YValues': '0.5,0.5'
+                        },
+                        {
+                            'Name': 'Passed',
+                            'DateValues': '4/3/13',
+                            'YValues': '0.5'
+                        }
+                    ]);
+        };
+    </script>
+    
+</body>
+</html>

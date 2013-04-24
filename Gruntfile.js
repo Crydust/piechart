@@ -61,7 +61,7 @@ module.exports = function (grunt) {
         },
         clean: [
             'publish',
-            'piechart.zip'
+            'chart.zip'
         ],
         copy: {
             publish: {
@@ -97,7 +97,24 @@ module.exports = function (grunt) {
                         'src/js/geometry.js',
                         'src/js/drawing.js',
                         'src/js/piechart.js',
-                        'src/js/export_draw.js'
+                        'src/js/export_piechartdraw.js'
+                    ]
+                }
+            },
+            datelinechart: {
+                options: {
+                    wrap: 'datelinechart'
+                },
+                files: {
+                    'publish/js/datelinechart.js': [
+                        'src/js/colors.js',
+                        'src/js/geometry.js',
+                        'src/js/drawing.js',
+                        'src/js/objects.js',
+                        'src/js/axis.js',
+                        'src/js/dataset.js',
+                        'src/js/datelinechart.js',
+                        'src/js/export_datelinechartdraw.js'
                     ]
                 }
             },
@@ -114,7 +131,7 @@ module.exports = function (grunt) {
         },
         compress: {
             options: {
-                archive: 'piechart.zip'
+                archive: 'chart.zip'
             },
             files: {
                 expand: true,
@@ -137,11 +154,16 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('replaceScriptTags', function () {
-        var replacement = grunt.file.read('publish/index.html');
-        replacement = replacement.replace(
+        var piechartReplacement = grunt.file.read('publish/piechart.html');
+        piechartReplacement = piechartReplacement.replace(
                 /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
                 '<script src="js/piechart.js"></script>');
-        grunt.file.write('publish/index.html', replacement);
+        grunt.file.write('publish/piechart.html', piechartReplacement);
+        var datelinechartReplacement = grunt.file.read('publish/datelinechart.html');
+        datelinechartReplacement = datelinechartReplacement.replace(
+                /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
+                '<script src="js/datelinechart.js"></script>');
+        grunt.file.write('publish/datelinechart.html', datelinechartReplacement);
     });
 
     grunt.registerTask('simpleHashres', function () {
@@ -156,12 +178,19 @@ module.exports = function (grunt) {
             return newName;
         };
         
-        var replacement = grunt.file.read('publish/index.html');
         var piechartFileName = renameFile('publish/js', 'piechart.js', '${hash}.piechart.cache.js');
-        replacement = replacement.replace('="js/piechart.js"', '="js/' + piechartFileName + '"');
+        var datelinechartFileName = renameFile('publish/js', 'datelinechart.js', '${hash}.datelinechart.cache.js');
         var excanvasFileName = renameFile('publish/js/vendor', 'excanvas.js', '${hash}.excanvas.cache.js');
-        replacement = replacement.replace('="js/vendor/excanvas.js"', '="js/vendor/' + excanvasFileName + '"');
-        grunt.file.write('publish/index.html', replacement);
+
+        var piechartReplacement = grunt.file.read('publish/piechart.html');
+        piechartReplacement = piechartReplacement.replace('="js/piechart.js"', '="js/' + piechartFileName + '"');
+        piechartReplacement = piechartReplacement.replace('="js/vendor/excanvas.js"', '="js/vendor/' + excanvasFileName + '"');
+        grunt.file.write('publish/piechart.html', piechartReplacement);
+
+        var datelinechartReplacement = grunt.file.read('publish/datelinechart.html');
+        datelinechartReplacement = datelinechartReplacement.replace('="js/datelinechart.js"', '="js/' + datelinechartFileName + '"');
+        datelinechartReplacement = datelinechartReplacement.replace('="js/vendor/excanvas.js"', '="js/vendor/' + excanvasFileName + '"');
+        grunt.file.write('publish/datelinechart.html', datelinechartReplacement);
     });
     
     grunt.registerTask('test', ['connect:server', 'qunit']);

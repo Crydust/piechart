@@ -14,7 +14,7 @@
     "unused": false,
     "strict": false,
     "trailing": true,
-    "maxparams": 10,
+    "maxparams": 15,
     "maxdepth": 3,
     "maxstatements": 50,
     "maxcomplexity": 12,

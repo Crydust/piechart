@@ -1,5 +1,5 @@
 /*global colors: false, geometry: false, drawing: false */
-var piechart = (function (drawing, colors, geometry) {
+var piechart = (function (drawing, geometry) {
     
     var Point = geometry.Point;
     var toRad = geometry.toRad;
@@ -39,7 +39,7 @@ var piechart = (function (drawing, colors, geometry) {
         for (var k = 0, lenk = wedges.length; k < lenk; k++) {
             wedges[k].draw(d);
         }
-        d.renderGraphics(document.getElementById('root'));
+        d.renderGraphics(document.getElementById(id));
     }
     
     function Wedge(start, value, label, center, outerRadius, stroke, fill, textFill) {
@@ -131,4 +131,4 @@ var piechart = (function (drawing, colors, geometry) {
         draw: draw
     };
 
-}(drawing, colors, geometry));
+}(drawing, geometry));

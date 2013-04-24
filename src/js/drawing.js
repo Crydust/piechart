@@ -102,7 +102,9 @@ var drawing = (function (colors, geometry) {
         }
     };
 
-    CanvasDrawing.prototype.fillText = function (textToDraw, x, y, fill, fillalpha, font) {
+    CanvasDrawing.prototype.fillText = function (textToDraw, x, y, fill, fillalpha, font, textAlign, textBaseline) {
+        this.ctx_.textAlign = textAlign || 'start';
+        this.ctx_.textBaseline = textBaseline || 'alphabetic';
         this.ctx_.font = font;
         this.ctx_.fillStyle = hexToRgba(fill, fillalpha);
         this.ctx_.fillText(textToDraw, x, y);

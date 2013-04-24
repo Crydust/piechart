@@ -1,4 +1,4 @@
-/*! blanket - v1.0.8 */ 
+/*! blanket - v1.1.2 */ 
 
 if (typeof QUnit !== 'undefined'){ QUnit.config.autostart = false; }
 (function(define){
@@ -4029,13 +4029,13 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
         "ForInStatement"  ,
         "WithStatement"
     ],
-    covVar = (inBrowser ?   "window._$blanket" : "_$jscoverage" ),
     __blanket,
     copynumber = Math.floor(Math.random()*1000),
     coverageInfo = {},options = {
         reporter: null,
         adapter:null,
         filter: null,
+        customVariable: null,
         orderedLoading: true,
         loader: null,
         ignoreScriptError: false,
@@ -4047,7 +4047,9 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
         sourceURL: false,
         debug:false,
         engineOnly:false,
-        testReadyCallback:null
+        testReadyCallback:null,
+        commonJS:false,
+        instrumentCache:false
     };
     
     if (inBrowser && typeof window.blanket !== 'undefined'){
@@ -4081,6 +4083,14 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
             }
           }
         },
+        getCovVar: function(){
+            var opt = _blanket.options("customVariable");
+            if (opt){
+                if (_blanket.options("debug")) {console.log("BLANKET-Using custom tracking variable:",opt);}
+                return inBrowser ? "window."+opt : opt;
+            }
+            return inBrowser ?   "window._$blanket" : "_$jscoverage";
+        },
         options: function(key,value){
             if (typeof key !== "string"){
                 _blanket._extend(options,key);
@@ -4091,17 +4101,29 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
             }
         },
         instrument: function(config, next){
+            //check instrumented hash table,
+            //return instrumented code if available.
             var inFile = config.inputFile,
                 inFileName = config.inputFileName;
-            var sourceArray = _blanket._prepareSource(inFile);
-            _blanket._trackingArraySetup=[];
-            var instrumented =  parseAndModify(inFile,{loc:true,comment:true}, _blanket._addTracking(inFileName));
-            instrumented = _blanket._trackingSetup(inFileName,sourceArray)+instrumented;
-            if (_blanket.options("sourceURL")){
-                instrumented += "\n//@ sourceURL="+inFileName.replace("http://","");
+            //check instrument cache
+           if (_blanket.options("instrumentCache") && sessionStorage && sessionStorage.getItem("blanket_instrument_store-"+inFileName)){
+                if (_blanket.options("debug")) {console.log("BLANKET-Reading instrumentation from cache: ",inFileName);}
+                next(sessionStorage.getItem("blanket_instrument_store-"+inFileName));
+            }else{
+                var sourceArray = _blanket._prepareSource(inFile);
+                _blanket._trackingArraySetup=[];
+                var instrumented =  parseAndModify(inFile,{loc:true,comment:true}, _blanket._addTracking(inFileName));
+                instrumented = _blanket._trackingSetup(inFileName,sourceArray)+instrumented;
+                if (_blanket.options("sourceURL")){
+                    instrumented += "\n//@ sourceURL="+inFileName.replace("http://","");
+                }
+                if (_blanket.options("debug")) {console.log("BLANKET-Instrumented file: ",inFileName);}
+                if (_blanket.options("instrumentCache") && sessionStorage){
+                    if (_blanket.options("debug")) {console.log("BLANKET-Saving instrumentation to cache: ",inFileName);}
+                    sessionStorage.setItem("blanket_instrument_store-"+inFileName,instrumented);
+                }
+                next(instrumented);
             }
-            if (_blanket.options("debug")) {console.log("BLANKET-Instrumented file: ",inFileName);}
-            next(instrumented);
         },
         _trackingArraySetup: [],
         _branchingArraySetup: [],
@@ -4112,6 +4134,7 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
             var branches = _blanket.options("branchTracking");
             var sourceString = sourceArray.join("',\n'");
             var intro = "";
+            var covVar = _blanket.getCovVar();
 
             intro += "if (typeof "+covVar+" === 'undefined') "+covVar+" = {};\n";
             if (branches){
@@ -4158,7 +4181,6 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
             return intro;
         },
         _blockifyIf: function(node){
-            
             if (linesToAddBrackets.indexOf(node.type) > -1){
                 var bracketsExistObject = node.consequent || node.body;
                 var bracketsExistAlt = node.alternate;
@@ -4174,7 +4196,7 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
             //recursive on consequent and alternative
             var line = node.loc.start.line;
             var col = node.loc.start.column;
-            
+
             _blanket._branchingArraySetup.push({
                 line: line,
                 column: col,
@@ -4193,10 +4215,13 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
             //falafel doesn't take a file name
             //so we include the filename in a closure
             //and return the function to falafel
+            var covVar = _blanket.getCovVar();
+
             return function(node){
                 _blanket._blockifyIf(node);
-                
-                if (linesToAddTracking.indexOf(node.type) > -1 && node.parent.type !== "LabeledStatement"){
+
+                if (linesToAddTracking.indexOf(node.type) > -1 && node.parent.type !== "LabeledStatement") {
+                    _blanket._checkDefs(node,filename);
                     if (node.type === "VariableDeclaration" &&
                         (node.parent.type === "ForStatement" || node.parent.type === "ForInStatement")){
                         return;
@@ -4212,6 +4237,41 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
                     _blanket._trackBranch(node,filename);
                 }
             };
+        },
+        _checkDefs: function(node,filename){
+            // Make sure developers don't redefine window. if they do, inform them it is wrong.
+            if (inBrowser){
+                if (node.type === "VariableDeclaration" && node.declarations) {
+                    node.declarations.forEach(function(declaration) {
+                        if (declaration.id.name === "window") {
+                            throw new Error("Instrumentation error, you cannot redefine the 'window' variable in  " + filename + ":" + node.loc.start.line);
+                        }
+                    });
+                }
+                if (node.type === "FunctionDeclaration" && node.params) {
+                    node.params.forEach(function(param) {
+                        if (param.name === "window") {
+                            throw new Error("Instrumentation error, you cannot redefine the 'window' variable in  " + filename + ":" + node.loc.start.line);
+                        }
+                    });
+                }
+                //Make sure developers don't redefine the coverage variable
+                if (node.type === "ExpressionStatement" &&
+                    node.expression && node.expression.left &&
+                    node.expression.left.object && node.expression.left.property &&
+                    node.expression.left.object.name +
+                        "." + node.expression.left.property.name === _blanket.getCovVar()) {
+                    throw new Error("Instrumentation error, you cannot redefine the coverage variable in  " + filename + ":" + node.loc.start.line);
+                }
+            }else{
+                //Make sure developers don't redefine the coverage variable in node
+                if (node.type === "ExpressionStatement" &&
+                    node.expression && node.expression.left &&
+                    !node.expression.left.object && !node.expression.left.property &&
+                    node.expression.left.name === _blanket.getCovVar()) {
+                    throw new Error("Instrumentation error, you cannot redefine the coverage variable in  " + filename + ":" + node.loc.start.line);
+                }
+            }
         },
         setupCoverage: function(){
             coverageInfo.instrumentation = "blanket";
@@ -4257,7 +4317,7 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
                 this.report(coverageInfo);
             }else{
                 if (!_blanket.options("branchTracking")){
-                    delete _$jscoverage.branchFcn;
+                    delete (inBrowser ? window : global)[_blanket.getCovVar()].branchFcn;
                 }
                 this.options("reporter").call(this,coverageInfo);
             }
@@ -4285,7 +4345,7 @@ _blanket.extend({
             oldOptions(key,value);
             newVal[key] = value;
         }
-        
+
         if (newVal.adapter){
             _blanket._loadFile(newVal.adapter);
         }
@@ -4331,7 +4391,7 @@ _blanket.extend({
             css += "display:block;";
             css += "position:fixed;";
             css += "z-index:40001; }";
-        
+
             css += ".blanketDialogOverlay {";
             css += "position:fixed;";
             css += "width:100%;";
@@ -4341,13 +4401,13 @@ _blanket.extend({
             css += "-ms-filter:'progid:DXImageTransform.Microsoft.Alpha(Opacity=50)'; ";
             css += "filter:alpha(opacity=50); ";
             css += "z-index:40001; }";
-        
+
             css += ".blanketDialogVerticalOffset { ";
             css += "position:fixed;";
             css += "top:30%;";
             css += "width:100%;";
             css += "z-index:40002; }";
-        
+
             css += ".blanketDialogBox { ";
             css += "width:405px; ";
             css += "position:relative;";
@@ -4355,7 +4415,7 @@ _blanket.extend({
             css += "background-color:white;";
             css += "padding:10px;";
             css += "border:1px solid black; }";
-        
+
         var dom = document.createElement("style");
         dom.innerHTML = css;
         document.head.appendChild(dom);
@@ -4378,7 +4438,7 @@ _blanket.extend({
         if (sessionStorage["blanketSessionLoader"]){
             sessionArray = JSON.parse(sessionStorage["blanketSessionLoader"]);
         }
-        
+
 
         var fileLoader = function(event){
             var fileContent = event.currentTarget.result;
@@ -4420,12 +4480,21 @@ _blanket.extend({
             _blanket.blanketSession = null;
         }
         coverage_data.files = window._$blanket;
+        var require = blanket.options("commonJS") ? blanket._commonjs.require : window.require;
+
+        // Check if we have any covered files that requires reporting
+        // otherwise just exit gracefully.
+        if (!coverage_data.files || !Object.keys(coverage_data.files).length) {
+            if (_blanket.options("debug")) {console.log("BLANKET-Reporting No files were instrumented.");}
+            return;
+        }
+
         if (typeof coverage_data.files.branchFcn !== "undefined"){
             delete coverage_data.files.branchFcn;
         }
         if (_blanket.options("reporter")){
             require([_blanket.options("reporter").replace(".js","")],function(r){
-                r(coverage_data);
+                r(coverage_data,_blanket.options("reporter_options"));
             });
         }else if (typeof _blanket.defaultReporter === 'function'){
             _blanket.defaultReporter(coverage_data);
@@ -4441,16 +4510,17 @@ _blanket.extend({
         }
     },
     _loadSourceFiles: function(callback){
-        
+        console.log("ls1:"+new Date().getTime());
+        var require = blanket.options("commonJS") ? blanket._commonjs.require : window.require;
         function copy(o){
           var _copy = Object.create( Object.getPrototypeOf(o) );
           var propNames = Object.getOwnPropertyNames(o);
-         
+
           propNames.forEach(function(name){
             var desc = Object.getOwnPropertyDescriptor(o, name);
             Object.defineProperty(_copy, name, desc);
           });
-         
+
           return _copy;
         }
         if (_blanket.options("debug")) {console.log("BLANKET-Collecting page scripts");}
@@ -4495,6 +4565,7 @@ _blanket.extend({
                 callback();
             });
         }
+        console.log("ls2:"+new Date().getTime());
     },
     beforeStartTestRunner: function(opts){
         opts = opts || {};
@@ -4505,7 +4576,7 @@ _blanket.extend({
             _blanket._bindStartTestRunner(opts.bindEvent,
             function(){
                 _blanket._loadSourceFiles(function() {
-                    
+
                     var allLoaded = function(){
                         return opts.condition ? opts.condition() : _blanket.requireFilesLoaded();
                     };
@@ -4513,7 +4584,7 @@ _blanket.extend({
                         if (allLoaded()) {
                             if (_blanket.options("debug")) {console.log("BLANKET-All files loaded, init start test runner callback.");}
                             var cb = _blanket.options("testReadyCallback");
-                            
+
                             if (cb){
                                 if (typeof cb === "function"){
                                     cb(opts.callback);
@@ -4546,10 +4617,11 @@ _blanket.extend({
 });
 
 })(blanket);
-if (typeof requirejs !== "undefined"){blanket.options("existingRequireJS",true);}else{if (typeof window["define"] !== "undefined"){window["__blanket_old_define"]=window["define"];window["define"]=void 0;}
+
+blanket.setupRequireJS=function(context){
 
 /** vim: et:ts=4:sw=4:sts=4
- * @license RequireJS 2.1.4 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
+ * @license RequireJS 2.1.5 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
  */
@@ -4562,7 +4634,7 @@ var requirejs, require, define;
 (function (global) {
     var req, s, head, baseElement, dataMain, src,
         interactiveScript, currentlyAddingScript, mainScript, subPath,
-        version = '2.1.4',
+        version = '2.1.5',
         commentRegExp = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg,
         cjsRequireRegExp = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g,
         jsSuffixRegExp = /\.js$/,
@@ -4741,15 +4813,21 @@ var requirejs, require, define;
         var inCheckLoaded, Module, context, handlers,
             checkLoadedTimeoutId,
             config = {
+                //Defaults. Do not set a default for map
+                //config to speed up normalize(), which
+                //will run faster if there is no default.
                 waitSeconds: 7,
                 baseUrl: './',
                 paths: {},
                 pkgs: {},
                 shim: {},
-                map: {},
                 config: {}
             },
             registry = {},
+            //registry of just enabled modules, to speed
+            //cycle breaking code when lots of modules
+            //are registered, but not activated.
+            enabledRegistry = {},
             undefEvents = {},
             defQueue = [],
             defined = {},
@@ -4845,7 +4923,7 @@ var requirejs, require, define;
             }
 
             //Apply map config if available.
-            if (applyMap && (baseParts || starMap) && map) {
+            if (applyMap && map && (baseParts || starMap)) {
                 nameParts = name.split('/');
 
                 for (i = nameParts.length; i > 0; i -= 1) {
@@ -5126,6 +5204,7 @@ var requirejs, require, define;
         function cleanRegistry(id) {
             //Clean up machinery used for waiting modules.
             delete registry[id];
+            delete enabledRegistry[id];
         }
 
         function breakCycle(mod, traced, processed) {
@@ -5174,7 +5253,7 @@ var requirejs, require, define;
             inCheckLoaded = true;
 
             //Figure out the state of all the modules.
-            eachProp(registry, function (mod) {
+            eachProp(enabledRegistry, function (mod) {
                 map = mod.map;
                 modId = map.id;
 
@@ -5355,7 +5434,7 @@ var requirejs, require, define;
             },
 
             /**
-             * Checks is the module is ready to define itself, and if so,
+             * Checks if the module is ready to define itself, and if so,
              * define it.
              */
             check: function () {
@@ -5433,7 +5512,7 @@ var requirejs, require, define;
                         }
 
                         //Clean up
-                        delete registry[id];
+                        cleanRegistry(id);
 
                         this.defined = true;
                     }
@@ -5599,6 +5678,7 @@ var requirejs, require, define;
             },
 
             enable: function () {
+                enabledRegistry[this.map.id] = this;
                 this.enabled = true;
 
                 //Set flag mentioning that the module is enabling,
@@ -5758,6 +5838,7 @@ var requirejs, require, define;
             Module: Module,
             makeModuleMap: makeModuleMap,
             nextTick: req.nextTick,
+            onError: onError,
 
             /**
              * Set a configuration for the context.
@@ -5784,6 +5865,9 @@ var requirejs, require, define;
                 eachProp(cfg, function (value, prop) {
                     if (objs[prop]) {
                         if (prop === 'map') {
+                            if (!config.map) {
+                                config.map = {};
+                            }
                             mixin(config[prop], value, true, true);
                         } else {
                             mixin(config[prop], value, true);
@@ -5895,7 +5979,7 @@ var requirejs, require, define;
                         //Synchronous access to one module. If require.get is
                         //available (as in the Node adapter), prefer that.
                         if (req.get) {
-                            return req.get(context, deps, relMap);
+                            return req.get(context, deps, relMap, localRequire);
                         }
 
                         //Normalize module name, if it contains . or ..
@@ -5946,7 +6030,7 @@ var requirejs, require, define;
                      * plain URLs like nameToUrl.
                      */
                     toUrl: function (moduleNamePlusExt) {
-                        var ext, url,
+                        var ext,
                             index = moduleNamePlusExt.lastIndexOf('.'),
                             segment = moduleNamePlusExt.split('/')[0],
                             isRelative = segment === '.' || segment === '..';
@@ -5958,9 +6042,8 @@ var requirejs, require, define;
                             moduleNamePlusExt = moduleNamePlusExt.substring(0, index);
                         }
 
-                        url = context.nameToUrl(normalize(moduleNamePlusExt,
-                                                relMap && relMap.id, true), ext || '.fake');
-                        return ext ? url : url.substring(0, url.length - 5);
+                        return context.nameToUrl(normalize(moduleNamePlusExt,
+                                                relMap && relMap.id, true), ext,  true);
                     },
 
                     defined: function (id) {
@@ -6079,7 +6162,7 @@ var requirejs, require, define;
              * it is assumed to have already been normalized. This is an
              * internal API, not a public one. Use toUrl for the public API.
              */
-            nameToUrl: function (moduleName, ext) {
+            nameToUrl: function (moduleName, ext, skipExt) {
                 var paths, pkgs, pkg, pkgPath, syms, i, parentModule, url,
                     parentPath;
 
@@ -6128,7 +6211,7 @@ var requirejs, require, define;
 
                     //Join the path parts together, then figure out if baseUrl is needed.
                     url = syms.join('/');
-                    url += (ext || (/\?/.test(url) ? '' : '.js'));
+                    url += (ext || (/\?/.test(url) || skipExt ? '' : '.js'));
                     url = (url.charAt(0) === '/' || url.match(/^[\w\+\.\-]+:/) ? '' : config.baseUrl) + url;
                 }
 
@@ -6367,7 +6450,7 @@ var requirejs, require, define;
                 node.attachEvent('onreadystatechange', context.onScriptLoad);
                 //It would be great to add an error handler here to catch
                 //404s in IE9+. However, onreadystatechange will fire before
-                //the error handler, so that does not help. If addEvenListener
+                //the error handler, so that does not help. If addEventListener
                 //is used, then IE will fire error before load, but we cannot
                 //use that pathway given the connect.microsoft.com issue
                 //mentioned above about not doing the 'script execute,
@@ -6396,16 +6479,24 @@ var requirejs, require, define;
 
             return node;
         } else if (isWebWorker) {
-            //In a web worker, use importScripts. This is not a very
-            //efficient use of importScripts, importScripts will block until
-            //its script is downloaded and evaluated. However, if web workers
-            //are in play, the expectation that a build has been done so that
-            //only one script needs to be loaded anyway. This may need to be
-            //reevaluated if other use cases become common.
-            importScripts(url);
+            try {
+                //In a web worker, use importScripts. This is not a very
+                //efficient use of importScripts, importScripts will block until
+                //its script is downloaded and evaluated. However, if web workers
+                //are in play, the expectation that a build has been done so that
+                //only one script needs to be loaded anyway. This may need to be
+                //reevaluated if other use cases become common.
+                importScripts(url);
 
-            //Account for anonymous modules
-            context.completeLoad(moduleName);
+                //Account for anonymous modules
+                context.completeLoad(moduleName);
+            } catch (e) {
+                context.onError(makeError('importscripts',
+                                'importScripts failed for ' +
+                                    moduleName + ' at ' + url,
+                                e,
+                                [moduleName]));
+            }
         }
     };
 
@@ -6549,7 +6640,7 @@ var requirejs, require, define;
     req(cfg);
 }(this));
 
-}if (typeof window["__blanket_old_define"] !== "undefined"){window["define"] = window["__blanket_old_define"];}
+context.require=require; context.define=define; context.requirejs=requirejs; };
 
 blanket.defaultReporter = function(coverage){
     var cssSytle = "#blanket-main {margin:2px;background:#EEE;color:#333;clear:both;font-family:'Helvetica Neue Light', 'HelveticaNeue-Light', 'Helvetica Neue', Calibri, Helvetica, Arial, sans-serif; font-size:17px;} #blanket-main a {color:#333;text-decoration:none;}  #blanket-main a:hover {text-decoration:underline;} .blanket {margin:0;padding:5px;clear:both;border-bottom: 1px solid #FFFFFF;} .bl-error {color:red;}.bl-success {color:#5E7D00;} .bl-file{width:auto;} .bl-cl{float:left;} .blanket div.rs {margin-left:50px; width:150px; float:right} .bl-nb {padding-right:10px;} #blanket-main a.bl-logo {color: #EB1764;cursor: pointer;font-weight: bold;text-decoration: none} .bl-source{ overflow-x:scroll; background-color: #FFFFFF; border: 1px solid #CBCBCB; color: #363636; margin: 25px 20px; width: 80%;} .bl-source div{white-space: pre;font-family: monospace;} .bl-source > div > span:first-child{background-color: #EAEAEA;color: #949494;display: inline-block;padding: 0 10px;text-align: center;width: 30px;} .bl-source .miss{background-color:#e6c3c7} .bl-source span.branchWarning{color:#000;background-color:yellow;} .bl-source span.branchOkay{color:#000;background-color:transparent;}",
@@ -6563,6 +6654,7 @@ blanket.defaultReporter = function(coverage){
         }),
         bodyContent = "<div id='blanket-main'><div class='blanket bl-title'><div class='bl-cl bl-file'><a href='http://alex-seville.github.com/blanket/' target='_blank' class='bl-logo'>Blanket.js</a> results</div><div class='bl-cl rs'>Coverage (%)</div><div class='bl-cl rs'>Covered/Total Smts.</div>"+(hasBranchTracking ? "<div class='bl-cl rs'>Covered/Total Branches</div>":"")+"<div style='clear:both;'></div></div>",
         fileTemplate = "<div class='blanket {{statusclass}}'><div class='bl-cl bl-file'><span class='bl-nb'>{{fileNumber}}.</span><a href='javascript:blanket_toggleSource(\"file-{{fileNumber}}\")'>{{file}}</a></div><div class='bl-cl rs'>{{percentage}} %</div><div class='bl-cl rs'>{{numberCovered}}/{{totalSmts}}</div>"+( hasBranchTracking ? "<div class='bl-cl rs'>{{passedBranches}}/{{totalBranches}}</div>" : "" )+"<div id='file-{{fileNumber}}' class='bl-source' style='display:none;'>{{source}}</div><div style='clear:both;'></div></div>";
+        grandTotalTemplate = "<div class='blanket grand-total {{statusclass}}'><div class='bl-cl'>Totals</div><div class='bl-cl rs'>{{percentage}} %</div>"+( hasBranchTracking ? "<div class='bl-cl rs'>{{passedBranches}}/{{totalBranches}}</div>" : "" )+"<div class='bl-cl rs'>{{numberCovered}}/{{totalSmts}}</div><div style='clear:both;'></div></div>";
 
     function blanket_toggleSource(id) {
         var element = document.getElementById(id);
@@ -6702,6 +6794,10 @@ blanket.defaultReporter = function(coverage){
       };
 
     var files = coverage.files;
+    var totals = {
+      totalSmts: 0,
+      numberOfFilesCovered: 0
+    };
     for(var file in files)
     {
         fileNumber++;
@@ -6748,6 +6844,8 @@ blanket.defaultReporter = function(coverage){
                 }
               }
               code[i + 1] = "<div class='"+lineClass+"'><span class=''>"+(i + 1)+"</span>"+src+"</div>";
+              totals.totalSmts += totalSmts;
+              totals.numberOfFilesCovered += numberOfFilesCovered;
         }
         var totalBranches=0;
         var passedBranches=0;
@@ -6786,7 +6884,17 @@ blanket.defaultReporter = function(coverage){
         }
         bodyContent += output;
     }
+
+    var totalPercent = percentage(totals.numberOfFilesCovered, totals.totalSmts);
+    var statusClass = totalPercent < successRate ? "bl-error" : "bl-success";
+    var totalsOutput = grandTotalTemplate.replace("{{percentage}}", totalPercent)
+                               .replace("{{numberCovered}}", totals.numberOfFilesCovered)
+                               .replace("{{totalSmts}}", totals.totalSmts)
+                               .replace("{{statusclass}}", statusClass);
+
+    bodyContent += totalsOutput;
     bodyContent += "</div>"; //closing main
+
 
     appendTag('style', head, cssSytle);
     //appendStyle(body, headerContent);
@@ -6824,8 +6932,20 @@ blanket.defaultReporter = function(coverage){
                         if (es.nodeName === "data-cover-timeout"){
                             newOptions.timeout = es.nodeValue;
                         }
-                        if (es.nodeName === "testReadyCallback"){
+                        if (es.nodeName === "data-cover-reporter-options"){
+                            try{
+                                newOptions.reporter_options = JSON.parse(es.nodeValue);
+                            }catch(e){
+                                if (blanket.options("debug")){
+                                    throw new Error("Invalid reporter options.  Must be a valid stringified JSON object.");
+                                }
+                            }
+                        }
+                        if (es.nodeName === "data-cover-testReadyCallback"){
                             newOptions.testReadyCallback = es.nodeValue;
+                        }
+                        if (es.nodeName === "data-cover-customVariable"){
+                            newOptions.customVariable = es.nodeValue;
                         }
                         if (es.nodeName === "data-cover-flags"){
                             var flags = " "+es.nodeValue+" ";
@@ -6853,9 +6973,35 @@ blanket.defaultReporter = function(coverage){
                             if (flags.indexOf(" engineOnly ") > -1){
                                 newOptions.engineOnly = true;
                             }
+                            if (flags.indexOf(" commonJS ") > -1){
+                                newOptions.commonJS = true;
+                            }
+                             if (flags.indexOf(" instrumentCache ") > -1){
+                                newOptions.instrumentCache = true;
+                            }
                         }
                     });
     blanket.options(newOptions);
+
+    if (typeof requirejs !== 'undefined'){
+        blanket.options("existingRequireJS",true);
+    }
+    /* setup requirejs loader, if needed */
+    if (!blanket.options("existingRequireJS") ){
+        if (typeof window["define"] !== "undefined"){
+            window["__blanket_old_define"]=window["define"];
+            window["define"]=void 0;
+        }
+        if (blanket.options("commonJS")){
+            blanket._commonjs = {};
+            blanket.setupRequireJS(blanket._commonjs);
+        }else{
+            blanket.setupRequireJS(window);
+        }
+        if (typeof window["__blanket_old_define"] !== "undefined"){
+            window["define"] = window["__blanket_old_define"];
+        }
+    }
 })();
 (function(_blanket){
 _blanket.extend({
@@ -6899,6 +7045,7 @@ _blanket.extend({
         } )( data );
     },
     collectPageScripts: function(){
+        console.log("cps1:"+new Date().getTime());
         var toArray = Array.prototype.slice;
         var scripts = toArray.call(document.scripts);
         var selectedScripts=[],scriptNames=[];
@@ -6930,141 +7077,145 @@ _blanket.extend({
     }
 }
 });
+(function(){
+    var require = blanket.options("commonJS") ? blanket._commonjs.require : window.require;
+    var requirejs = blanket.options("commonJS") ? blanket._commonjs.requirejs : window.requirejs;
+    if (!_blanket.options("engineOnly")){
 
-if (!_blanket.options("engineOnly")){
+        _blanket.utils.oldloader = requirejs.load;
+        console.log("cps2:"+new Date().getTime());
 
-    _blanket.utils.oldloader = requirejs.load;
+        requirejs.load = function (context, moduleName, url) {
+            _blanket.requiringFile(url);
+            requirejs.cget(url, function (content) {
 
-
-    requirejs.load = function (context, moduleName, url) {
-        _blanket.requiringFile(url);
-        requirejs.cget(url, function (content) {
-            var match = _blanket.options("filter");
-            //we check the never matches first
-            var antimatch = _blanket.options("antifilter");
-            if (typeof antimatch !== "undefined" &&
-                    _blanket.utils.matchPatternAttribute(url.replace(".js",""),antimatch)
-                ){
-                _blanket.utils.oldloader(context, moduleName, url);
-                if (_blanket.options("debug")) {console.log("BLANKET-File will never be instrumented:"+url);}
-                _blanket.requiringFile(url,true);
-            }else if (_blanket.utils.matchPatternAttribute(url.replace(".js",""),match)){
-                if (_blanket.options("debug")) {console.log("BLANKET-Attempting instrument of:"+url);}
-                _blanket.instrument({
-                    inputFile: content,
-                    inputFileName: url
-                },function(instrumented){
-                    try{
-                        _blanket.utils.blanketEval(instrumented);
-                        context.completeLoad(moduleName);
-                        _blanket.requiringFile(url,true);
-                    }
-                    catch(err){
-                        if (_blanket.options("ignoreScriptError")){
-                            //we can continue like normal if
-                            //we're ignoring script errors,
-                            //but otherwise we don't want
-                            //to completeLoad or the error might be
-                            //missed.
-                            if (_blanket.options("debug")) { console.log("BLANKET-There was an error loading the file:"+url); }
+                var match = _blanket.options("filter");
+                //we check the never matches first
+                var antimatch = _blanket.options("antifilter");
+                if (typeof antimatch !== "undefined" &&
+                        _blanket.utils.matchPatternAttribute(url.replace(".js",""),antimatch)
+                    ){
+                    _blanket.utils.oldloader(context, moduleName, url);
+                    if (_blanket.options("debug")) {console.log("BLANKET-File will never be instrumented:"+url);}
+                    _blanket.requiringFile(url,true);
+                }else if (_blanket.utils.matchPatternAttribute(url.replace(".js",""),match)){
+                    if (_blanket.options("debug")) {console.log("BLANKET-Attempting instrument of:"+url);}
+                    _blanket.instrument({
+                        inputFile: content,
+                        inputFileName: url
+                    },function(instrumented){
+                        try{
+                            _blanket.utils.blanketEval(instrumented);
                             context.completeLoad(moduleName);
                             _blanket.requiringFile(url,true);
-                        }else{
-                            throw new Error("Error parsing instrumented code: "+err);
+                        }
+                        catch(err){
+                            if (_blanket.options("ignoreScriptError")){
+                                //we can continue like normal if
+                                //we're ignoring script errors,
+                                //but otherwise we don't want
+                                //to completeLoad or the error might be
+                                //missed.
+                                if (_blanket.options("debug")) { console.log("BLANKET-There was an error loading the file:"+url); }
+                                context.completeLoad(moduleName);
+                                _blanket.requiringFile(url,true);
+                            }else{
+                                throw new Error("Error parsing instrumented code: "+err);
+                            }
+                        }
+                    });
+                }else{
+                    if (_blanket.options("debug")) { console.log("BLANKET-Loading (without instrumenting) the file:"+url);}
+                    _blanket.utils.oldloader(context, moduleName, url);
+                    _blanket.requiringFile(url,true);
+                }
+
+            }, function (err) {
+                _blanket.requiringFile();
+                throw err;
+            });
+        };
+
+
+        requirejs.createXhr = function () {
+            //Would love to dump the ActiveX crap in here. Need IE 6 to die first.
+            var xhr, i, progId;
+            if (typeof XMLHttpRequest !== "undefined") {
+                return new XMLHttpRequest();
+            } else if (typeof ActiveXObject !== "undefined") {
+                for (i = 0; i < 3; i += 1) {
+                    progId = progIds[i];
+                    try {
+                        xhr = new ActiveXObject(progId);
+                    } catch (e) {}
+
+                    if (xhr) {
+                        progIds = [progId];  // so faster next time
+                        break;
+                    }
+                }
+            }
+
+            return xhr;
+        };
+
+
+        requirejs.cget = function (url, callback, errback, onXhr) {
+            var foundInSession = false;
+            if (_blanket.blanketSession){
+                var files = Object.keys(_blanket.blanketSession);
+                for (var i=0; i<files.length;i++ ){
+                    var key = files[i];
+                    if (url.indexOf(key) > -1){
+                        callback(_blanket.blanketSession[key]);
+                        foundInSession=true;
+                        return;
+                    }
+                }
+            }
+            if (!foundInSession){
+                var xhr = requirejs.createXhr();
+                xhr.open('GET', url, true);
+
+                //Allow overrides specified in config
+                if (onXhr) {
+                    onXhr(xhr, url);
+                }
+
+                xhr.onreadystatechange = function (evt) {
+                    var status, err;
+                    
+                    //Do not explicitly handle errors, those should be
+                    //visible via console output in the browser.
+                    if (xhr.readyState === 4) {
+                        status = xhr.status;
+                        if ((status > 399 && status < 600) /*||
+                            (status === 0 &&
+                                navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
+                           */ ) {
+                            //An http 4xx or 5xx error. Signal an error.
+                            err = new Error(url + ' HTTP status: ' + status);
+                            err.xhr = xhr;
+                            errback(err);
+                        } else {
+                            callback(xhr.responseText);
                         }
                     }
-                });
-            }else{
-                if (_blanket.options("debug")) { console.log("BLANKET-Loading (without instrumenting) the file:"+url);}
-                _blanket.utils.oldloader(context, moduleName, url);
-                _blanket.requiringFile(url,true);
-            }
-
-        }, function (err) {
-            _blanket.requiringFile();
-            throw err;
-        });
-    };
-
-
-    requirejs.createXhr = function () {
-        //Would love to dump the ActiveX crap in here. Need IE 6 to die first.
-        var xhr, i, progId;
-        if (typeof XMLHttpRequest !== "undefined") {
-            return new XMLHttpRequest();
-        } else if (typeof ActiveXObject !== "undefined") {
-            for (i = 0; i < 3; i += 1) {
-                progId = progIds[i];
-                try {
-                    xhr = new ActiveXObject(progId);
-                } catch (e) {}
-
-                if (xhr) {
-                    progIds = [progId];  // so faster next time
-                    break;
-                }
-            }
-        }
-
-        return xhr;
-    };
-
-
-    requirejs.cget = function (url, callback, errback, onXhr) {
-        var foundInSession = false;
-        if (_blanket.blanketSession){
-            var files = Object.keys(_blanket.blanketSession);
-            for (var i=0; i<files.length;i++ ){
-                var key = files[i];
-                if (url.indexOf(key) > -1){
-                    callback(_blanket.blanketSession[key]);
-                    foundInSession=true;
-                    return;
-                }
-            }
-        }
-        if (!foundInSession){
-            var xhr = requirejs.createXhr();
-            xhr.open('GET', url, true);
-
-            //Allow overrides specified in config
-            if (onXhr) {
-                onXhr(xhr, url);
-            }
-
-            xhr.onreadystatechange = function (evt) {
-                var status, err;
-                
-                //Do not explicitly handle errors, those should be
-                //visible via console output in the browser.
-                if (xhr.readyState === 4) {
-                    status = xhr.status;
-                    if ((status > 399 && status < 600) /*||
-                        (status === 0 &&
-                            navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
-                       */ ) {
-                        //An http 4xx or 5xx error. Signal an error.
-                        err = new Error(url + ' HTTP status: ' + status);
-                        err.xhr = xhr;
-                        errback(err);
+                };
+                try{
+                    xhr.send(null);
+                }catch(e){
+                    if (e.code && (e.code === 101 || e.code === 1012) && _blanket.options("ignoreCors") === false){
+                        //running locally and getting error from browser
+                        _blanket.showManualLoader();
                     } else {
-                        callback(xhr.responseText);
+                        throw e;
                     }
                 }
-            };
-            try{
-                xhr.send(null);
-            }catch(e){
-                if (e.code && (e.code === 101 || e.code === 1012) && _blanket.options("ignoreCors") === false){
-                    //running locally and getting error from browser
-                    _blanket.showManualLoader();
-                } else {
-                    throw e;
-                }
             }
-        }
-    };
-}
+        };
+    }
+})();
 })(blanket);
 
 (function(){
@@ -7130,6 +7281,7 @@ if (typeof QUnit !== 'undefined'){
                 }
             });
         }else{
+            requirejs.load = _blanket.utils.oldloader;
             blanket.noConflict().beforeStartTestRunner({
                 condition: allLoaded,
                 callback: function(){
