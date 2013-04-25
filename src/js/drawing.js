@@ -52,17 +52,26 @@ var drawing = (function (colors, geometry) {
      * @param {!number} fillalpha float [0, 1] 0 is transparent, 1 is opaque
      */
     CanvasDrawing.prototype.drawShape = function (shape, coords_arr, strokewidth, stroke, strokealpha, fill, fillalpha) {
+        var i, leni;
         if (!(fillalpha > 0  || (strokealpha > 0 && strokewidth > 0))) {
             return;
         }
         this.ctx_.beginPath();
         switch (shape) {
         case 'poly':
+            //closed polygon
             this.ctx_.moveTo(coords_arr[0], coords_arr[1]);
-            for (var i = 0, leni = coords_arr.length; i < leni; i += 2) {
+            for (i = 0, leni = coords_arr.length; i < leni; i += 2) {
                 this.ctx_.lineTo(coords_arr[i], coords_arr[i + 1]);
             }
             this.ctx_.lineTo(coords_arr[0], coords_arr[1]);
+            break;
+        case 'polyline':
+            //open polygon
+            this.ctx_.moveTo(coords_arr[0], coords_arr[1]);
+            for (i = 0, leni = coords_arr.length; i < leni; i += 2) {
+                this.ctx_.lineTo(coords_arr[i], coords_arr[i + 1]);
+            }
             break;
         case 'circle':
             this.ctx_.moveTo(coords_arr[0] + coords_arr[2], coords_arr[1]);
@@ -90,7 +99,9 @@ var drawing = (function (colors, geometry) {
             this.ctx_.lineTo(coords_arr[0], coords_arr[1]);
             break;
         }
-        this.ctx_.closePath();
+        if (shape !== 'polyline') {
+            this.ctx_.closePath();
+        }
         if (fillalpha > 0) {
             this.ctx_.fillStyle = hexToRgba(fill, fillalpha);
             this.ctx_.fill();

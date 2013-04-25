@@ -116,7 +116,7 @@ var piechart = (function (drawing, geometry) {
         var p1 = this.getLineStartPosition();
         var p2 = this.getLineEndPosition();
         d.drawShape(
-                'poly',
+                'polyline',
                 [p1.getX(), p1.getY(), p2.getX(), p2.getY()],
                 strokewidth, stroke, strokealpha,
                 fill, fillalpha);

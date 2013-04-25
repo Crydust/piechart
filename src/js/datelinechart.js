@@ -78,7 +78,7 @@ var datelinechart = (function (drawing, geometry, dataset, axis) {
         // vertical stripes
         for (i = 0; i <= xCount; i++) {
             var x = xAxis.labelPixels(i, xCount);
-            d.drawShape('poly', [Math.floor(x) + 0.5, Math.floor(top) + 0.5, Math.floor(x) + 0.5, Math.floor(bottom) + 5 + 0.5],
+            d.drawShape('polyline', [Math.floor(x) + 0.5, Math.floor(top) + 0.5, Math.floor(x) + 0.5, Math.floor(bottom) + 5 + 0.5],
                     strokewidth, stroke, strokealpha, fill, fillalpha);
             d.fillText(xAxis.labelText(i, xCount), x, bottom + 20,
                     '#000000', 1, '16px sans-serif', 'center', 'top');
@@ -86,7 +86,7 @@ var datelinechart = (function (drawing, geometry, dataset, axis) {
         // horizontal stripes
         for (i = 0; i <= yCount; i++) {
             var y = yAxis.labelPixels(i, yCount);
-            d.drawShape('poly', [Math.floor(left) - 5 + 0.5, Math.floor(y) + 0.5, Math.floor(right) + 0.5, Math.floor(y) + 0.5],
+            d.drawShape('polyline', [Math.floor(left) - 5 + 0.5, Math.floor(y) + 0.5, Math.floor(right) + 0.5, Math.floor(y) + 0.5],
                     strokewidth, stroke, strokealpha, fill, fillalpha);
             d.fillText(yAxis.labelText(i, yCount), left - 10, y,
                     '#000000', 1, '16px sans-serif', 'right', 'middle');
@@ -112,7 +112,7 @@ var datelinechart = (function (drawing, geometry, dataset, axis) {
                         yAxis.valueToPixels(values[i].y));
             }
         }
-        d.drawShape('poly', coordinates,
+        d.drawShape('polyline', coordinates,
                 strokewidth, stroke, strokealpha, fill, fillalpha);
     }
 
@@ -124,7 +124,7 @@ var datelinechart = (function (drawing, geometry, dataset, axis) {
             legendRect.getLeft() + 5 + 16,
             legendRect.getBottom() - (20 * (count - index))
         ];
-        d.drawShape('poly', lineCoordinates,
+        d.drawShape('polyline', lineCoordinates,
                 strokewidth, stroke, strokealpha, fill, fillalpha);
         d.fillText(name,
                 legendRect.getLeft() + 5 + 16 + 5,
