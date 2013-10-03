@@ -22,13 +22,16 @@ var datelinechart = (function (drawing, geometry, dataset, axis) {
         var legendRect = rootRect.subRect(0.95, 0.99, 0.2, 0.7);
 
         var datasets = new DataSetCollection(rawdatasets);
+        var minYValue = datasets.getMinYValue();
+        var maxYValue = datasets.getMaxYValue();
+        var deltaYValue = maxYValue - minYValue;
         var xAxis = new DateAxis(
                 plotAreaRect.getLeft(), plotAreaRect.getRight(),
                 datasets.getMinDate(), datasets.getMaxDate()
                 );
         var yAxis = new NumericAxis(
                 plotAreaRect.getBottom(), plotAreaRect.getTop(),
-                datasets.getMinYValue(), datasets.getMaxYValue()
+                minYValue, maxYValue
                 );
 
         var strokewidth = 0, stroke = '#000000', strokealpha = 0, fill = '#eeeeff', fillalpha = 1;
@@ -39,7 +42,19 @@ var datelinechart = (function (drawing, geometry, dataset, axis) {
         stroke = '#cccccc';
         strokewidth = 1;
         strokealpha = 1;
-        drawGrid(d, plotAreaRect, xAxis, 3, yAxis, 5,
+        var yCount = 5;
+        if (deltaYValue % 7 === 0) {
+            yCount = 7;
+        } else if (deltaYValue % 6 === 0) {
+            yCount = 6;
+        } else if (deltaYValue % 5 === 0) {
+            yCount = 5;
+        } else if (deltaYValue % 4 === 0) {
+            yCount = 4;
+        } else if (deltaYValue % 3 === 0) {
+            yCount = 3;
+        }
+        drawGrid(d, plotAreaRect, xAxis, 3, yAxis, yCount,
                 strokewidth, stroke, strokealpha, fill, fillalpha);
 
         fillalpha = 0;
