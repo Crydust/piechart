@@ -118,7 +118,17 @@ var dataset = (function () {
             }
             //console.log('yyy', minYValue, yValue, maxYValue);
         }
-        return [Math.floor(minYValue - 0.5), Math.ceil(maxYValue + 0.5)];
+        if (minYValue >= 0 && minYValue < 1) {
+            minYValue = 0;
+        } else {
+            minYValue = Math.floor(minYValue - 0.5);
+        }
+        if (maxYValue > 9 && maxYValue <= 10) {
+            maxYValue = 10;
+        } else {
+            maxYValue = Math.ceil(maxYValue + 0.5);
+        }
+        return [minYValue, maxYValue];
     };
     DataSet.prototype.getMinYValue = function () {
         return this.getExtremeYValues()[0];
