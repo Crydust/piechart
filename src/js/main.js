@@ -1,4 +1,4 @@
 /*global require: false */
 require.config({
-    baseUrl: "js"
+    baseUrl: 'js'
 });

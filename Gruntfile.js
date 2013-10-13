@@ -60,10 +60,17 @@ module.exports = function (grunt) {
                 'test/js/**/*.js'
             ]
         },
-        clean: [
-            'publish',
-            'chart.zip'
-        ],
+        clean: {
+            all: [
+                'publish',
+                'chart.zip'
+            ],
+            afterrequirejs: [
+                'publish/js/app',
+                'publish/js/vendor/domReady.js',
+                'chart.zip'
+            ]
+        },
         copy: {
             publish: {
                 files: [
@@ -72,12 +79,45 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             '**',
-                            '!**/*.js'
+                            '!**/*.js',
+                            'js/vendor/excanvas.js'
                         ],
                         dest: 'publish/',
                         filter: 'isFile'
                     }
                 ]
+            }
+        },
+        requirejs: {
+            compile: {
+                options: {
+                    baseUrl: 'js',
+                    appDir: 'src',
+                    dir: 'publish',
+                    name: 'main',
+                    include: [
+                        'app/piechart', 'app/datelinechart', 'vendor/domReady'
+                    ],
+                    pragmas: {
+                        prod: true
+                    },
+                    optimize: 'none',
+                    optimizeCss: 'standard'
+                }
+            },
+            compileAlmond: {
+                options: {
+                    baseUrl: 'src/js',
+                    out: 'publish/js/main.js',
+                    name: 'vendor/almond',
+                    include: [
+                        'app/piechart', 'app/datelinechart', 'vendor/domReady'
+                    ],
+                    pragmas: {
+                        prod: true
+                    },
+                    optimize: 'uglify2'
+                }
             }
         },
         uglify: {
@@ -159,13 +199,13 @@ module.exports = function (grunt) {
         var piechartReplacement = grunt.file.read('publish/piechart.html');
         piechartReplacement = piechartReplacement.replace(
             /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-            '<script src="js/piechart.js"></script>'
+            '<script src="js/main.js"></script>'
         );
         grunt.file.write('publish/piechart.html', piechartReplacement);
         var datelinechartReplacement = grunt.file.read('publish/datelinechart.html');
         datelinechartReplacement = datelinechartReplacement.replace(
             /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-            '<script src="js/datelinechart.js"></script>'
+            '<script src="js/main.js"></script>'
         );
         grunt.file.write('publish/datelinechart.html', datelinechartReplacement);
     });
@@ -199,7 +239,9 @@ module.exports = function (grunt) {
     
     grunt.registerTask('test', ['connect:server', 'qunit']);
     grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
-    grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres', 'compress']);
+    //grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres', 'compress']);
+    grunt.registerTask('publishX', ['clean:all', 'default', 'requirejs:compile', 'clean:afterrequirejs']);
+    grunt.registerTask('publish', ['clean:all', 'default', 'copy:publish', 'requirejs:compileAlmond', 'clean:afterrequirejs']);
     grunt.registerTask('dev', ['jshint', 'connect:server', 'reload', 'watch']);
     
 };
