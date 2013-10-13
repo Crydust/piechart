@@ -150,10 +150,11 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-reload');
     grunt.loadNpmTasks('grunt-jssemicoloned');
     grunt.loadNpmTasks('grunt-contrib-compress');
-
+    
     grunt.registerTask('replaceScriptTags', function () {
         var piechartReplacement = grunt.file.read('publish/piechart.html');
         piechartReplacement = piechartReplacement.replace(

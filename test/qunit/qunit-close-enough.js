@@ -3,7 +3,7 @@ QUnit.extend( QUnit.assert, {
 	 * Checks that the first two arguments are equal, or are numbers close enough to be considered equal
 	 * based on a specified maximum allowable difference.
 	 *
-	 * @example assert.close(3.141, Math.PI, 0.001);
+	 * @example close(3.141, Math.PI, 0.001);
 	 *
 	 * @param Number actual
 	 * @param Number expected
@@ -19,7 +19,7 @@ QUnit.extend( QUnit.assert, {
 	 * Checks that the first two arguments are numbers with differences greater than the specified
 	 * minimum difference.
 	 *
-	 * @example assert.notClose(3.1, Math.PI, 0.001);
+	 * @example notClose(3.1, Math.PI, 0.001);
 	 *
 	 * @param Number actual
 	 * @param Number expected
