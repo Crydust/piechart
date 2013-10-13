@@ -1,4 +1,5 @@
-/*global module:false */
+/*jslint vars:true */
+/*global module:false, require:false */
 module.exports = function (grunt) {
     'use strict';
 
@@ -156,13 +157,15 @@ module.exports = function (grunt) {
     grunt.registerTask('replaceScriptTags', function () {
         var piechartReplacement = grunt.file.read('publish/piechart.html');
         piechartReplacement = piechartReplacement.replace(
-                /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-                '<script src="js/piechart.js"></script>');
+            /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
+            '<script src="js/piechart.js"></script>'
+        );
         grunt.file.write('publish/piechart.html', piechartReplacement);
         var datelinechartReplacement = grunt.file.read('publish/datelinechart.html');
         datelinechartReplacement = datelinechartReplacement.replace(
-                /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-                '<script src="js/datelinechart.js"></script>');
+            /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
+            '<script src="js/datelinechart.js"></script>'
+        );
         grunt.file.write('publish/datelinechart.html', datelinechartReplacement);
     });
 

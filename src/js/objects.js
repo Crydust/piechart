@@ -1,4 +1,8 @@
-var objects = (function () {
+/*jslint vars:true, nomen:true, browser:true */
+/*global define:false */
+define(function () {
+    'use strict';
+
     function beget(o) {
         function F() {}
         F.prototype = o;
@@ -12,4 +16,4 @@ var objects = (function () {
         beget: beget,
         extend: extend
     };
-}());
+});

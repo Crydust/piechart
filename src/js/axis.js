@@ -1,5 +1,8 @@
-/*global objects: false */
-var axis = (function (objects) {
+/*jslint vars:true, nomen:true, browser:true */
+/*global define:false */
+define(['objects'], function (objects) {
+    'use strict';
+
     var extend = objects.extend;
     function NumericAxis(minimumPixels, maximumPixels, minimumValue, maximumValue) {
         this._minimumPixels = minimumPixels;
@@ -48,4 +51,4 @@ var axis = (function (objects) {
         NumericAxis: NumericAxis,
         DateAxis: DateAxis
     };
-}(objects));
+});

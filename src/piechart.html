@@ -10,17 +10,21 @@
     <div id="root"></div>
     <!--[if lt IE 9]><script src="js/vendor/excanvas.js"></script><![endif]-->
     <!-- BEGIN REPLACE -->
-    <script src="js/colors.js"></script>
-    <script src="js/geometry.js"></script>
-    <script src="js/drawing.js"></script>
-    <script src="js/piechart.js"></script>
+    <script src="js/vendor/require.js"></script>
+    <script>
+        require.config({
+            baseUrl: "js"
+        });
+    </script>
     <!-- END REPLACE -->
     <script>
         window.onload = function () {
-            piechart.draw(
+            require(['piechart'], function(piechart){
+                piechart.draw(
                     'root', 500, 300,
                     '2,3,5,7,11,13,17,19'.split(','),
                     'KN,AA,BB,CC,DD,EE,FF,GG'.split(','));
+            });
         };
     </script>
     

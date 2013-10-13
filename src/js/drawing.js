@@ -1,5 +1,7 @@
-/*global colors: false, geometry: false */
-var drawing = (function (colors, geometry) {
+/*jslint vars:true, nomen:true, browser:true */
+/*global define:false */
+define(['colors', 'geometry'], function (colors, geometry) {
+    'use strict';
 
     var hexToRgba = colors.hexToRgba;
     var Point = geometry.Point;
@@ -133,4 +135,4 @@ var drawing = (function (colors, geometry) {
     return {
         CanvasDrawing: CanvasDrawing
     };
-}(colors, geometry));
+});

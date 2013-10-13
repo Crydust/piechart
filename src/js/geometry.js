@@ -1,4 +1,7 @@
-var geometry = (function () {
+/*jslint vars:true, nomen:true, browser:true */
+/*global define:false */
+define(function () {
+    'use strict';
 
     function Point(x, y) {
         this.x = x;
@@ -84,4 +87,4 @@ var geometry = (function () {
         toRad: toRad,
         toDeg: toDeg
     };
-}());
+});
