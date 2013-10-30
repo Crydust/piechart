@@ -26,6 +26,6 @@
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-compress": "~0.4.4",
-    "amdclean": "~0.2.1"
+    "amdclean": "~0.2.6"
   }
 }

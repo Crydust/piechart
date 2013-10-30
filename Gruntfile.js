@@ -89,29 +89,42 @@ module.exports = function (grunt) {
             }
         },
         requirejs: {
-            compile: {
+            amdclean: {
                 options: {
-                    baseUrl: 'js',
-                    appDir: 'src',
-                    dir: 'publish',
-                    name: 'main',
+                    baseUrl: 'src/js',
+                    out: 'publish/js/amdclean.js',
+                    findNestedDependencies: true,
+                    wrap: true,
+                    preserveLicenseComments: false,
+                    optimize: 'uglify2',
+                    mainConfigFile: 'src/js/main.js',
+                    include: ['app/amdclean_export', 'vendor/domReady'],
+                    onBuildWrite: function (name, path, contents) {
+                        return require('amdclean').clean(contents);
+                    }
+                }
+            },
+            compileAlmondPiechart: {
+                options: {
+                    baseUrl: 'src/js',
+                    out: 'publish/js/piechart.js',
+                    name: 'vendor/almond',
                     include: [
-                        'app/piechart', 'app/datelinechart', 'vendor/domReady'
+                        'app/piechart', 'vendor/domReady'
                     ],
                     pragmas: {
                         prod: true
                     },
-                    optimize: 'none',
-                    optimizeCss: 'standard'
+                    optimize: 'uglify2'
                 }
             },
-            compileAlmond: {
+            compileAlmondDatelinechart: {
                 options: {
                     baseUrl: 'src/js',
-                    out: 'publish/js/main.js',
+                    out: 'publish/js/datelinechart.js',
                     name: 'vendor/almond',
                     include: [
-                        'app/piechart', 'app/datelinechart', 'vendor/domReady'
+                        'app/datelinechart', 'vendor/domReady'
                     ],
                     pragmas: {
                         prod: true
@@ -127,37 +140,6 @@ module.exports = function (grunt) {
                 beautify: false,
                 lint: true,
                 report: 'min'
-            },
-            piechart: {
-                options: {
-                    wrap: 'piechart'
-                },
-                files: {
-                    'publish/js/piechart.js': [
-                        'src/js/colors.js',
-                        'src/js/geometry.js',
-                        'src/js/drawing.js',
-                        'src/js/piechart.js',
-                        'src/js/export_piechartdraw.js'
-                    ]
-                }
-            },
-            datelinechart: {
-                options: {
-                    wrap: 'datelinechart'
-                },
-                files: {
-                    'publish/js/datelinechart.js': [
-                        'src/js/colors.js',
-                        'src/js/geometry.js',
-                        'src/js/drawing.js',
-                        'src/js/objects.js',
-                        'src/js/axis.js',
-                        'src/js/dataset.js',
-                        'src/js/datelinechart.js',
-                        'src/js/export_datelinechartdraw.js'
-                    ]
-                }
             },
             excanvas: {
                 options: {
@@ -199,13 +181,13 @@ module.exports = function (grunt) {
         var piechartReplacement = grunt.file.read('publish/piechart.html');
         piechartReplacement = piechartReplacement.replace(
             /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-            '<script src="js/main.js"></script>'
+            '<script src="js/piechart.js"></script>'
         );
         grunt.file.write('publish/piechart.html', piechartReplacement);
         var datelinechartReplacement = grunt.file.read('publish/datelinechart.html');
         datelinechartReplacement = datelinechartReplacement.replace(
             /<!\-\-\s*BEGIN\s*REPLACE\s*\-\->[\s\S]*<!\-\-\s*END\s*REPLACE\s*\-\->/i,
-            '<script src="js/main.js"></script>'
+            '<script src="js/datelinechart.js"></script>'
         );
         grunt.file.write('publish/datelinechart.html', datelinechartReplacement);
     });
@@ -239,9 +221,9 @@ module.exports = function (grunt) {
     
     grunt.registerTask('test', ['connect:server', 'qunit']);
     grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
-    //grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres', 'compress']);
-    grunt.registerTask('publishX', ['clean:all', 'default', 'requirejs:compile', 'clean:afterrequirejs']);
-    grunt.registerTask('publish', ['clean:all', 'default', 'copy:publish', 'requirejs:compileAlmond', 'clean:afterrequirejs']);
+    grunt.registerTask('publish', ['clean:all', 'default', 'copy:publish',
+                                   'requirejs:compileAlmondPiechart', 'requirejs:compileAlmondDatelinechart', 'requirejs:amdclean', 'uglify:excanvas',
+                                   'replaceScriptTags', 'simpleHashres', 'clean:afterrequirejs', 'compress']);
     grunt.registerTask('dev', ['jshint', 'connect:server', 'reload', 'watch']);
     
 };
