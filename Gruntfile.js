@@ -42,14 +42,13 @@ module.exports = function (grunt) {
                     'src/**/*.html', 'src/**/*.js', 'src/**/*.css',
                     'test/**/*.html', 'test/**/*.js', 'test/**/*.css'
                 ],
-                tasks: ['jshint', 'reload']
-            }
-        },
-        reload: {
-            port: 6001,
-            proxy: {
-                host: 'localhost',
-                port: 8888
+                tasks: ['jshint'],
+                options: {
+                    livereload: {
+                        host: 'localhost',
+                        port: 9999
+                    }
+                }
             }
         },
         jssemicoloned: {
@@ -196,6 +195,6 @@ module.exports = function (grunt) {
     grunt.registerTask('test', ['connect:server', 'qunit']);
     grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
     grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres', 'compress']);
-    grunt.registerTask('dev', ['jshint', 'connect:server', 'reload', 'watch']);
+    grunt.registerTask('dev', ['jshint', 'connect:server', 'watch']);
     
 };
