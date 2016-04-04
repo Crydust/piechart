@@ -29,7 +29,7 @@ var piechart = (function (drawing, geometry) {
         var wedges = [];
         var start = 0;
         for (var j = 0, lenj = values.length; j < lenj; j++) {
-            var wedge = new Wedge(start, values[j] / total, labels[j], center, outerRadius, themeColors[3], themeColors[j + 4], themeColors[2]);
+            var wedge = new Wedge(start, values[j] / total, labels[j], center, outerRadius, themeColors[3], themeColors[(j % (themeColors.length - 4)) + 4], themeColors[2]);
             start = wedge.getEnd();
             wedges.push(wedge);
         }
