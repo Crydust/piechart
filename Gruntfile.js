@@ -148,7 +148,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-reload');
     grunt.loadNpmTasks('grunt-jssemicoloned');
     grunt.loadNpmTasks('grunt-contrib-compress');
 
