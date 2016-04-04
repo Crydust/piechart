@@ -96,7 +96,7 @@ var piechart = (function (drawing, geometry) {
                 '#ffffff', '#eeeeee', '#121212', '#dddddd',
                 '#fff4d6', '#d7bad6', '#a1bbee', '#c0c1a1',
                 '#f0cbae', '#958f91', '#bfa9ac', '#f8e9be',
-                '#c8c8c8'
+                '#c8c8c8', '#a1bbee'
             ];
         var center = new Point(width / 2, height  / 2);
         var outerRadius = Math.min(width, height) / 2;
@@ -114,7 +114,7 @@ var piechart = (function (drawing, geometry) {
         var wedges = [];
         var start = 0;
         for (var j = 0, lenj = values.length; j < lenj; j++) {
-			var fillColor = themeColors[(j % (themeColors.length - 4)) + 4];
+            var fillColor = themeColors[(j % (themeColors.length - 4)) + 4];
             var wedge = new Wedge(start, values[j] / total, labels[j], center, outerRadius, themeColors[3], fillColor, themeColors[2]);
             start = wedge.getEnd();
             wedges.push(wedge);
