@@ -1,12 +1,11 @@
-/*global colors: false, geometry: false, drawing: false, console: false */
-var dataset = (function () {
-
-    function DataSet(name, dateValues, yValues) {
+export class DataSet {
+    
+    constructor(name, dateValues, yValues) {
         this._name = name;
         this._dateValues = dateValues;
         this._yValues = yValues;
     }
-    DataSet.prototype.getExtremeDates = function () {
+    getExtremeDates() {
         var i, leni;
         var minDate = Date.UTC(2100, 0, 1, 0, 0, 0, 0);
         var maxDate = Date.UTC(1970, 0, 1, 0, 0, 0, 0);
@@ -27,14 +26,14 @@ var dataset = (function () {
             maxDate = Date.UTC(new Date(maxDate).getUTCFullYear(), new Date(maxDate).getUTCMonth() + 1, 1, 0, 0, 0, 0);
         }
         return [minDate, maxDate];
-    };
-    DataSet.prototype.getMinDate = function () {
+    }
+    getMinDate() {
         return this.getExtremeDates()[0];
-    };
-    DataSet.prototype.getMaxDate = function () {
+    }
+    getMaxDate() {
         return this.getExtremeDates()[1];
-    };
-    DataSet.prototype.getExtremeYValues = function () {
+    }
+    getExtremeYValues() {
         var i, leni;
         var minYValue = 1000000;
         var maxYValue = -1000000;
@@ -59,17 +58,17 @@ var dataset = (function () {
             maxYValue = Math.ceil(maxYValue + 0.5);
         }
         return [minYValue, maxYValue];
-    };
-    DataSet.prototype.getMinYValue = function () {
+    }
+    getMinYValue() {
         return this.getExtremeYValues()[0];
-    };
-    DataSet.prototype.getMaxYValue = function () {
+    }
+    getMaxYValue() {
         return this.getExtremeYValues()[1];
-    };
-    DataSet.prototype.getName = function () {
+    }
+    getName() {
         return this._name;
-    };
-    DataSet.prototype.getValues = function () {
+    }
+    getValues() {
         var i, leni;
         var result = [];
         for (i = 0, leni = this._dateValues.length; i < leni; i++) {
@@ -79,9 +78,12 @@ var dataset = (function () {
             });
         }
         return result;
-    };
+    }
 
-    function DataSetCollection(rawdatasets) {
+}
+
+export class DataSetCollection {
+    constructor(rawdatasets) {
         var i, leni, j, lenj;
         this._datasets = [];
         for (i = 0, leni = rawdatasets.length; i < leni; i++) {
@@ -111,7 +113,7 @@ var dataset = (function () {
             this._datasets.push(new DataSet(name, dateValues, yValues));
         }
     }
-    DataSetCollection.prototype.getExtremeDates = function () {
+    getExtremeDates() {
         var i, leni;
         var minDate = Date.UTC(2100, 0, 1, 0, 0, 0, 0);
         var maxDate = Date.UTC(1970, 0, 1, 0, 0, 0, 0);
@@ -121,14 +123,14 @@ var dataset = (function () {
             maxDate = Math.max(maxDate, extremes[1]);
         }
         return [minDate, maxDate];
-    };
-    DataSetCollection.prototype.getMinDate = function () {
+    }
+    getMinDate() {
         return this.getExtremeDates()[0];
-    };
-    DataSetCollection.prototype.getMaxDate = function () {
+    }
+    getMaxDate() {
         return this.getExtremeDates()[1];
-    };
-    DataSetCollection.prototype.getExtremeYValues = function () {
+    }
+    getExtremeYValues() {
         var i, leni;
         var minYValue = 1000000;
         var maxYValue = -1000000;
@@ -138,22 +140,19 @@ var dataset = (function () {
             maxYValue = Math.max(maxYValue, extremes[1]);
         }
         return [minYValue, maxYValue];
-    };
-    DataSetCollection.prototype.getMinYValue = function () {
+    }
+    getMinYValue() {
         return this.getExtremeYValues()[0];
-    };
-    DataSetCollection.prototype.getMaxYValue = function () {
+    }
+    getMaxYValue() {
         return this.getExtremeYValues()[1];
-    };
-    DataSetCollection.prototype.getCount = function () {
+    }
+    getCount() {
         return this._datasets.length;
-    };
-    DataSetCollection.prototype.getItem = function (index) {
+    }
+    getItem(index) {
         return this._datasets[index];
-    };
+    }
+    
+}
 
-    return {
-        DataSetCollection: DataSetCollection,
-        DataSet: DataSet
-    };
-}());

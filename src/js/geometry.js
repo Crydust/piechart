@@ -1,26 +1,27 @@
-var geometry = (function () {
-
-    function Point(x, y) {
+export class Point {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
     }
-    Point.prototype.getX = function () {
+    getX() {
         return this.x;
-    };
-    Point.prototype.getY = function () {
+    }
+    getY() {
         return this.y;
-    };
-    Point.prototype.translate = function (x, y) {
+    }
+    translate(x, y) {
         if (x instanceof Point) {
             return new Point(this.x + x.getX(), this.y + x.getY());
         }
         return new Point(this.x + x, this.y + y);
-    };
-    Point.polar = function (r, a) {
+    }
+    static polar (r, a) {
         return new Point(Math.cos(a) * r, Math.sin(a) * r);
-    };
+    }
+}
 
-    function Rect(top, left, width, height) {
+export class Rect {
+    constructor(top, left, width, height) {
         if (left instanceof Point && top instanceof Point) {
             this.tl = top;
             this.br = left;
@@ -29,59 +30,52 @@ var geometry = (function () {
             this.br = new Point(left + width, top + height);
         }
     }
-    Rect.prototype.getLeft = function () {
+    getLeft() {
         return this.tl.getX();
-    };
-    Rect.prototype.getTop = function () {
+    }
+    getTop() {
         return this.tl.getY();
-    };
-    Rect.prototype.getRight = function () {
+    }
+    getRight() {
         return this.br.getX();
-    };
-    Rect.prototype.getBottom = function () {
+    }
+    getBottom() {
         return this.br.getY();
-    };
-    Rect.prototype.getWidth = function () {
+    }
+    getWidth() {
         return this.getRight() - this.getLeft();
-    };
-    Rect.prototype.getHeight = function () {
+    }
+    getHeight() {
         return this.getBottom() - this.getTop();
-    };
-    Rect.prototype.subRect = function (top, right, bottom, left) {
+    }
+    subRect(top, right, bottom, left) {
         var subTop = this.getTop() + ((1 - top) * this.getHeight());
         var subHeight = this.getHeight() * (top - bottom);
         var subLeft = this.getLeft() + (left * this.getWidth());
         var subWidth = (right - left) * this.getWidth();
         return new Rect(subTop, subLeft, subWidth, subHeight);
-    };
-    Rect.prototype.toString = function () {
+    }
+    toString() {
         return 'Rect { top: %s, left: %s, width: %s, height: %s}'
             .replace('%s', this.getTop().toFixed(1))
             .replace('%s', this.getLeft().toFixed(1))
             .replace('%s', this.getWidth().toFixed(1))
             .replace('%s', this.getHeight().toFixed(1));
-    };
-
-    function toRad(degrees) {
-        var result = (degrees * Math.PI / 180) % (Math.PI * 2);
-        if (result < 0) {
-            result += (Math.PI * 2);
-        }
-        return result;
     }
+}
 
-    function toDeg(radians) {
-        var result = (radians * 180 / Math.PI) % 360;
-        if (result < 0) {
-            result += 360;
-        }
-        return result;
+export function toRad(degrees) {
+    var result = (degrees * Math.PI / 180) % (Math.PI * 2);
+    if (result < 0) {
+        result += (Math.PI * 2);
     }
+    return result;
+}
 
-    return {
-        Point: Point,
-        Rect: Rect,
-        toRad: toRad,
-        toDeg: toDeg
-    };
-}());
+export function toDeg(radians) {
+    var result = (radians * 180 / Math.PI) % 360;
+    if (result < 0) {
+        result += 360;
+    }
+    return result;
+}

@@ -1,27 +1,26 @@
-/*global colors: false, geometry: false */
-var drawing = (function (colors, geometry) {
+import {hexToRgba} from './colors';
+import {Point} from './geometry';
 
-    var hexToRgba = colors.hexToRgba;
-    var Point = geometry.Point;
+/** @define {boolean} */
+var EXCANVAS_COMPATIBLE = true;
 
-    /** @define {boolean} */
-    var EXCANVAS_COMPATIBLE = true;
+export class CanvasDrawing {
 
     /**
      * @constructor
      * @implements {var IDrawing}
      */
-    var CanvasDrawing = function () {
+    constructor() {
         this.canvas_ = null;
         this.ctx_ = null;
-    };
+    }
 
     /**
      * encapsulates the creation of the 'magical' object
      * @param {!number} width
      * @param {!number} height
      */
-    CanvasDrawing.prototype.createGraphics = function (width, height) {
+    createGraphics(width, height) {
         this.canvas_ = document.createElement('canvas');
 
         if (EXCANVAS_COMPATIBLE) {
@@ -39,7 +38,7 @@ var drawing = (function (colors, geometry) {
         this.canvas_.width = width;
         this.canvas_.height = height;
         this.ctx_ = this.canvas_.getContext('2d');
-    };
+    }
 
     /**
      * draws a single shape
@@ -51,7 +50,7 @@ var drawing = (function (colors, geometry) {
      * @param {!string} fill hexadecimal color #123456
      * @param {!number} fillalpha float [0, 1] 0 is transparent, 1 is opaque
      */
-    CanvasDrawing.prototype.drawShape = function (shape, coords_arr, strokewidth, stroke, strokealpha, fill, fillalpha) {
+    drawShape(shape, coords_arr, strokewidth, stroke, strokealpha, fill, fillalpha) {
         var i, leni;
         if (!(fillalpha > 0  || (strokealpha > 0 && strokewidth > 0))) {
             return;
@@ -111,26 +110,22 @@ var drawing = (function (colors, geometry) {
             this.ctx_.lineWidth = strokewidth;
             this.ctx_.stroke();
         }
-    };
+    }
 
-    CanvasDrawing.prototype.fillText = function (textToDraw, x, y, fill, fillalpha, font, textAlign, textBaseline) {
+    fillText(textToDraw, x, y, fill, fillalpha, font, textAlign, textBaseline) {
         this.ctx_.textAlign = textAlign || 'start';
         this.ctx_.textBaseline = textBaseline || 'alphabetic';
         this.ctx_.font = font;
         this.ctx_.fillStyle = hexToRgba(fill, fillalpha);
         this.ctx_.fillText(textToDraw, x, y);
-    };
+    }
 
     /**
      * ends the drawing and adds it to the dom
      * @param {HTMLElement} container
      */
-    CanvasDrawing.prototype.renderGraphics = function (container) {
+    renderGraphics(container) {
         container.appendChild(this.canvas_);
         delete this.canvas_;
-    };
-
-    return {
-        CanvasDrawing: CanvasDrawing
-    };
-}(colors, geometry));
+    }
+}
