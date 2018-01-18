@@ -51,13 +51,6 @@ module.exports = function (grunt) {
                 }
             }
         },
-        jssemicoloned: {
-            files: [
-                'Gruntfile.js',
-                'src/js/**/*.js', '!src/js/vendor/**/*.js',
-                'test/js/**/*.js'
-            ]
-        },
         clean: [
             'publish',
             'chart.zip'
@@ -148,7 +141,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-jssemicoloned');
     grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('replaceScriptTags', function () {
@@ -192,7 +184,7 @@ module.exports = function (grunt) {
     });
     
     grunt.registerTask('test', ['connect:server', 'qunit']);
-    grunt.registerTask('default', ['jssemicoloned', 'jshint', 'test']);
+    grunt.registerTask('default', ['jshint', 'test']);
     grunt.registerTask('publish', ['clean', 'default', 'uglify', 'copy', 'replaceScriptTags', 'simpleHashres', 'compress']);
     grunt.registerTask('dev', ['jshint', 'connect:server', 'watch']);
     
