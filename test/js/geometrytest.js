@@ -2,14 +2,16 @@
 
 QUnit.module('geometry.Point');
 
-QUnit.test('constructor', 3, function (assert) {
+QUnit.test('constructor', function (assert) {
+	assert.expect(3);
     var p1 = new geometry.Point(1, 2);
     assert.ok(p1 instanceof geometry.Point);
     assert.equal(p1.getX(), 1);
     assert.equal(p1.getY(), 2);
 });
 
-QUnit.test('translate', 8, function (assert) {
+QUnit.test('translate', function (assert) {
+	assert.expect(8);
     var p1 = new geometry.Point(1, 2);
     
     var p2 = p1.translate(2, 3);
@@ -25,7 +27,8 @@ QUnit.test('translate', 8, function (assert) {
     assert.equal(p2.getY(), 5);
 });
 
-QUnit.test('polar', 12, function (assert) {
+QUnit.test('polar', function (assert) {
+	assert.expect(12);
     assert.close(Math.cos(0), 1, 0.001, 'cos 0 = 1');
     assert.close(Math.sin(0), 0, 0.001, 'sin 0 = 0');
     assert.close(Math.cos(Math.PI / 2), 0, 0.001, 'cos 90 = 0');
@@ -116,7 +119,8 @@ QUnit.test('subRect2', function (assert) {
 });
 
 
-QUnit.test('toDeg', 7, function (assert) {
+QUnit.test('toDeg', function (assert) {
+	assert.expect(7);
     assert.strictEqual(geometry.toDeg(0), 0, '0 is 0 deg');
     assert.strictEqual(geometry.toDeg(Math.PI / 2), 90, 'pi/2 is 90 deg');
     assert.strictEqual(geometry.toDeg(Math.PI), 180, 'pi is 180 deg');
@@ -126,7 +130,8 @@ QUnit.test('toDeg', 7, function (assert) {
     assert.strictEqual(geometry.toDeg(Math.PI * -7 / 2), 90, 'pi*-7/2 is 90 deg');
 });
 
-QUnit.test('toRad', 7, function (assert) {
+QUnit.test('toRad', function (assert) {
+	assert.expect(7);
     assert.strictEqual(geometry.toRad(0), 0, '0 is 0 deg');
     assert.strictEqual(geometry.toRad(90), Math.PI / 2, 'pi/2 is 90 deg');
     assert.strictEqual(geometry.toRad(180), Math.PI, 'pi is 180 deg');

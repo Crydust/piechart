@@ -2,7 +2,8 @@
 
 QUnit.module('colors');
 
-QUnit.test('hexToRgba', 3, function (assert) {
+QUnit.test('hexToRgba', function (assert) {
+	assert.expect(3);
     var rgb = colors.hexToRgba('#123456');
     var rgba = colors.hexToRgba('#123456', 0.5);
     var rgb2 = colors.hexToRgba('#123456', 1);
