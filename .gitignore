@@ -13,41 +13,7 @@ thumbs.db
 # vim
 *.swp
 
-# svn
-.svn/
-_svn/
-
-# cvs
-CVS/
-.#*
-.cvsignore
-
-# python
-*.pyo
-*.pyc
-
-# dreamweaver
-_notes/
-
-# eclipse
-.refactorings/
-.settings/
-.classpath
-.project
-
-# netbeans
-nbproject/
-
 # npm
 npm-debug.log
-
-# grunt
 node_modules/
 
-# jscoverage
-testResults/
-
-# ignore generated files
-intermediate/
-publish/
-chart.zip

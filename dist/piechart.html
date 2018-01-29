@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>piechart</title>
+</head>
+<body>
+    <div>[ <a href="index.html">index</a> | piechart | <a href="datelinechart.html">datelinechart</a> ]</div>
+    <div id="root"></div>
+    <script type="module">
+        import {draw as piechartdraw} from './piechart.bundle.js';
+        window.onload = function () {
+            piechartdraw(
+                    'root', 500, 300,
+                    '2,3,5,7,11,13,17,19'.split(','),
+                    'KN,AA,BB,CC,DD,EE,FF,GG'.split(','));
+        };
+    </script>
+    
+</body>
+</html>
