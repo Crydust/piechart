@@ -2,15 +2,9 @@
   "name": "piechart",
   "version": "0.0.0",
   "description": "simple piechart",
-  "author": {
-    "name": "Kristof Neirynck"
-  },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://www.opensource.org/licenses/mit-license.php"
-    }
-  ],
+  "author": "Kristof Neirynck",
+  "license": "MIT",
+  "repository": "github:Crydust/piechart",
   "readmeFilename": "README.txt",
   "dependencies": {},
   "devDependencies": {
