@@ -9,10 +9,10 @@
     <div>[ <a href="index.html">index</a> | <a href="piechart.html">piechart</a> | datelinechart ]</div>
     <div id="root" style="float:left;"></div>
     <div id="root2" style="float:left;"></div>
-    <script type="module">
-        import {draw as datelinechartdraw} from './datelinechart.bundle.js';
+    <script src="./index.bundle.js"></script>
+    <script>
         window.onload = function () {
-            datelinechartdraw(
+            piechart.drawDatelinechart(
                     'root', 460, 320, [
                         {
                             'Name': 'Allocated',
@@ -35,7 +35,7 @@
                             'YValues': '0.5'
                         }
                     ]);
-            datelinechartdraw(
+            piechart.drawDatelinechart(
                     'root', 460, 320, [
                         {
                             'Name': 'Distance',

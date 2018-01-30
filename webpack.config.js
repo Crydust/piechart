@@ -1,12 +1,11 @@
 const path = require('path');
 
 module.exports = {
-  entry: {
-    piechart: './src/piechart.js',
-    datelinechart: './src/datelinechart.js',
-  },
+  entry: './src/index.js',
   output: {
-    filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    filename: 'index.bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+    library: 'piechart',
+    libraryTarget: 'var'
   }
 };
