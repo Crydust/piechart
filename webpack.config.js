@@ -10,6 +10,9 @@ module.exports = {
     libraryTarget: 'var'
   },
   plugins: [
-     new UglifyJsPlugin()
-  ]
+     new UglifyJsPlugin({
+      sourceMap: true
+    })
+  ],
+  devtool: 'source-map'
 };
