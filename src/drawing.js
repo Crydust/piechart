@@ -3,9 +3,6 @@ import {Point} from './geometry.js';
 
 export class CanvasDrawing {
 
-	/**
-	 * @constructor
-	 */
 	constructor() {
 		this.canvas_ = null;
 		this.ctx_ = null;

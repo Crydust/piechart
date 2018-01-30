@@ -1,5 +1,4 @@
 /**
- * @private
  * @param {!string} hexColor
  * @param {!number} alpha
  * @returns {!string}

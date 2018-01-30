@@ -17,12 +17,6 @@ describe('geometry', function () {
 			assert.equal(p1.getY(), 2);
 			assert.equal(p2.getX(), 3);
 			assert.equal(p2.getY(), 5);
-
-			const p3 = p1.translate(new Point(2, 3));
-			assert.equal(p1.getX(), 1);
-			assert.equal(p1.getY(), 2);
-			assert.equal(p2.getX(), 3);
-			assert.equal(p2.getY(), 5);
 		});
 		it('polar', function () {
 			assert.closeTo(Math.cos(0), 1, 0.001, 'cos 0 = 1');
