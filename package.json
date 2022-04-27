@@ -23,9 +23,5 @@
     "grunt-contrib-requirejs": "~1.0.0",
     "grunt-contrib-uglify": "~5.2.1",
     "grunt-contrib-watch": "~1.1.0"
-  },
-  "overrides": {
-    "trim-newlines": "~4.0.2",
-	"node-gyp": "~9.0.0"
   }
 }
