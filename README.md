@@ -11,8 +11,8 @@ tested and known to work in ie 6+, firefox 3.6+, safari 4+, chrome 14+, opera 10
 
 Install nodejs and yarn.
 
-    yarn global add grunt-cli
-    yarn install
+    npm install -g grunt-cli
+    npm install
     grunt publish
 
 The publish folder should contain compiled files

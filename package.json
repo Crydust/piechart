@@ -12,17 +12,20 @@
     }
   ],
   "readmeFilename": "README.txt",
-  "dependencies": {},
   "devDependencies": {
-    "grunt": "~1.0.1",
-    "grunt-contrib-clean": "~1.1.0",
+    "grunt": "~1.5.2",
+    "grunt-contrib-clean": "~2.0.1",
     "grunt-contrib-compress": "~1.4.3",
-    "grunt-contrib-connect": "~1.0.1",
+    "grunt-contrib-connect": "~3.0.0",
     "grunt-contrib-copy": "~1.0.0",
-    "grunt-contrib-jshint": "~1.1.0",
+    "grunt-contrib-jshint": "~3.2.0",
     "grunt-contrib-qunit": "~2.0.0",
     "grunt-contrib-requirejs": "~1.0.0",
     "grunt-contrib-uglify": "~3.3.0",
-    "grunt-contrib-watch": "~1.0.0"
+    "grunt-contrib-watch": "~1.1.0"
+  },
+  "overrides": {
+    "trim-newlines": "~4.0.2",
+	"node-gyp": "~9.0.0"
   }
 }

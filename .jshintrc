@@ -17,7 +17,7 @@
     "maxparams": 15,
     "maxdepth": 3,
     "maxstatements": 50,
-    "maxcomplexity": 15,
+    "maxcomplexity": 17,
     "maxlen": 150,
 
     "browser": true,
