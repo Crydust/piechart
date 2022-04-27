@@ -1,4 +1,4 @@
-/*global colors: false, geometry: false, drawing: false */
+/*global geometry: false, drawing: false */
 var piechart = (function (drawing, geometry) {
     
     var Point = geometry.Point;
